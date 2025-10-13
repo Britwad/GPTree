@@ -222,7 +222,7 @@ To mitigate risks related to LLM output variability, we will do the following:
 
 **Triggers**
 
-* User clicks button on an existing node for follow-up questions
+* 
 
 **Preconditions**
 
@@ -231,18 +231,15 @@ To mitigate risks related to LLM output variability, we will do the following:
 
 **Postconditions (success scenario)**
 
-* There is now an additional Node on the tree, the node contains information answering the user's question, and it maintains the context of the nodes between it and the root. There are generated potential follow-up questions.
+* 
 
 **List of steps (success scenario)**
 
-1. System: A list of 3 potential follow-up questions appear next to the node, as well as an empty text box where user can enter their own question.
-2. User: Clicks the first option (E.g. "What is a determinant"?)
-3. System: A new node branches off the current node, and a modal appears displaying the question, generated text from LLM, and additional potential follow-up questions.
+1. 
 
 **Extensions/variations of the success scenario**
 
-* The user wants to ask their own follow up question regarding the initial node, and types “how many eigenvectors does a matrix have?”. A new node branches off the original node and they can see the new text as it generates.
-* The user also can click a follow-up question or write their own while in the Node modal. In this case, the modal switches to a new one and the user can see the generated text. When they exit the modal they can see the new Node connected to the previous one.
+* 
 
 **Exceptions: failure conditions and scenarios**
 
@@ -252,7 +249,7 @@ To mitigate risks related to LLM output variability, we will do the following:
 
 **Trigger**
 
-* Learner clicks “Generate Flashcards” on a node or “Practice” in the hub.
+* Learner clicks “Generate Flashcards” on a node or while viewing Node
 
 **Preconditions**
 
@@ -291,7 +288,7 @@ To mitigate risks related to LLM output variability, we will do the following:
 
 **Trigger**
 
-* Learner clicks “Generate Flashcards” on a node or “Practice” in the hub.
+* Learner clicks “Generate Flashcards” while viewing Tree
 
 **Preconditions**
 

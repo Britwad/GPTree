@@ -89,11 +89,11 @@ To mitigate risks related to LLM output variability, we will do the following:
 
 *All following use cases will be between two actors: **User** and **System***
 
-### **3.1. Create User Account**
+### **3.1. User Sign in / Sign up**
 
 **Triggers**
 
-* User clicks "Create Account" button
+* User clicks "Get Started" button
 
 **Preconditions**
 
@@ -102,7 +102,7 @@ To mitigate risks related to LLM output variability, we will do the following:
 
 **Postconditions (success scenario)**
 
-* User is signed into their account, using their google account, and can now create a tree
+* User is signed into their account, using their google account, and can now create a tree. If they had not created an account before, a new user entity is associated with their email.
 
 **List of steps (success scenario)**
 
@@ -110,7 +110,7 @@ To mitigate risks related to LLM output variability, we will do the following:
 2. User: Clicks button
 3. System: Prompts user to sign in with their google account, and asks for information/permissions
 4. User: Enters information, gives permissions
-5. System: NextAuth.js authenticates information, then passes user information to server
+5. System: NextAuth.js authenticates information, then passes user inf`ormation to server
 5. System: A cookie is set so that frontend has access to which user is using site. Routes to landing page where user can create tree associated with their account.
 
 **Extensions/variations of the success scenario**
@@ -120,40 +120,9 @@ To mitigate risks related to LLM output variability, we will do the following:
 
 **Exceptions: failure conditions and scenarios**
 
-* The user may attempt to have a conversation with the LLM by saying something like "hi, how are you?", and the LLM may respond to the question rather than flagging the response as irrelevant.
+* The user provides an invalid email address. In this case we will display an error message for the user telling them to try again with valid input.
 
-### **3.2. User Sign In**
-
-**Triggers**
-
-* User clicks "Create Account" button
-
-**Preconditions**
-
-* User is on landing page
-* User is not signed in
-
-**Postconditions (success scenario)**
-
-* There now exists a tree entity related to at least one node, where the node contains information relevant to the user's requested topic.
-
-**List of steps (success scenario)**
-
-1. System: Presents "I want to learn about..." text field
-2. User:  Enters "matrices" in text field
-3. System: A modal appears where text is generated to explain the requested topic
-4. User: Scrolls to read content. Then clicks peripheral of modal to exit.
-5. System: Display the generated node in an open space. The node focuses on mouse hover and can be clicked. The node has a button for asking a follow up question. There is a side panel that will list each created tree by the user, as well as a button to create a new tree.
-
-**Extensions/variations of the success scenario**
-
-* The user wants to ask their own follow up question regarding the initial node, and types “how many eigenvectors does a matrix have?”. A new node branches off the original node and they can see the new text as it generates.
-
-**Exceptions: failure conditions and scenarios**
-
-* The user may attempt to have a conversation with the LLM by saying something like "hi, how are you?", and the LLM may respond to the question rather than flagging the response as irrelevant.
-
-### **3.3. Create a Tree**
+### **3.2. Create a Tree**
 
 **Triggers**
 
@@ -181,9 +150,10 @@ To mitigate risks related to LLM output variability, we will do the following:
 
 **Exceptions: failure conditions and scenarios**
 
-* The user may attempt to have a conversation with the LLM by saying something like "hi, how are you?", and the LLM may respond to the question rather than flagging the response as irrelevant.
+* LLM Generation Timeout or Failure. In this case we will throw an error message, reset the state, and ask the user to try again.
+* Connection Lost During Generation. In this case we will throw an error message, reset the state, and ask the user to try again.
 
-### **3.4. Generate a follow-up Node**
+### **3.3. Generate a follow-up Node**
 
 **Triggers**
 
@@ -211,15 +181,10 @@ To mitigate risks related to LLM output variability, we will do the following:
 
 **Exceptions: failure conditions and scenarios**
 
-* 
+* LLM Generation Timeout or Failure. In this case we will throw an error message, reset the state, and ask the user to try again.
+* Connection Lost During Generation. In this case we will throw an error message, reset the state, and ask the user to try again.
 
-### **3.5.  View an existing Tree**
-Written by: Jackson
-
-**Actors**
-
-* Primary: Learner  
-* Secondary: LLM Service, Database
+### **3.4.  View an existing Tree**
 
 **Trigger**
 
@@ -253,7 +218,7 @@ Written by: Jackson
 * The tree was improperly saved or the data was corrupted  
 * “Review Mode” inaccurately summarizes the content of a node \-\> display “Manual review recommended” near nodes with a lot of content
 
-### **3.6. View an existing node**
+### **3.5. View an existing node**
 
 **Triggers**
 
@@ -283,7 +248,7 @@ Written by: Jackson
 
 * 
 
-### **3.7. Generate Flashcards from a Node**
+### **3.6. Generate Flashcards from a Node**
 
 **Trigger**
 
@@ -322,7 +287,7 @@ Written by: Jackson
 * Time/clock issues → The server sets the right time so reviews aren’t duplicated or skipped.  
 * Can’t save → Your draft list stays on your device, and you’ll see a Try again message.
 
-### **3.8. Generate Flashcards from a Tree**
+### **3.7. Generate Flashcards from a Tree**
 
 **Trigger**
 
@@ -362,7 +327,7 @@ Written by: Jackson
 * Can’t save → Your draft list stays on your device, and you’ll see a Try again message.
 
 
-### **3.9.  Use Spaced Repetition Feed**
+### **3.8.  Use Spaced Repetition Feed**
 
 **Triggers**
 
@@ -491,26 +456,20 @@ High-fidelity mockups and finalized UI flows are completed. Early integration be
 
 ##### End Of Week 8 - Peer Review
 
-* UI/UX Implement interactivity and navigation between screens   
-  * Frontend Update the deck view and add generate flashcards flow  
-  * Backend Generate flashcards
-
-##### End Of Week 9 - Final Release
-
 * UI/UX Go back to UX testing with people outside of class, continuing to change any confusing areas to create seamless website  
   * Frontend Add test sections and result summaries  
   * Backend Generate Quizzes
 
-##### End Of Week 10 - Individual retrospective
+##### End Of Week 9 - Final Release
+All Functional Requirements are implemented and tested. Mobile app is complete (time permitting)
 
 * UI/UX Finalize product, refining any UI inconsistencies, optimize performance  
 * Frontend Final exhaustive testing of frontend/ polish.  
 * Backend Adapt for mobile app version if we have time  
 
-##### End Of Week 11  
-* UI/UX: Finish 100% of the design with all cases working without any errors. PRESENT TO CLASS  
-* Frontend: Finish 100% of the frontend of the website with all cases working without any errors. PRESENT TO CLASS  
-* Backend:Finish 100% of the backend of the website with all cases working without any errors. PRESENT TO CLASS
+##### End Of Week 10 - Individual retrospective
+
+Product is ready, and is ready for presentation.
 
 ### Major risks that may prevent the completion of the project (And Mitigations)
 

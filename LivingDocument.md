@@ -412,7 +412,7 @@ Development will take place in Visual Studio Code, using GitHub for version cont
 
 ### Timeline
 
-##### End Of Week 3 - Project Requirements
+##### End Of Week 3 - Requirements & Team Policies
 GPTree functional and non-functional requirements are solidified. Team processes are documented.
 * UI/UX:  
   - Planning what features are needed and what each part of the website should do and look like  
@@ -422,51 +422,79 @@ GPTree functional and non-functional requirements are solidified. Team processes
   - Get webserver and database online
 
 ##### End Of Week 4 - Architecture
-System architecture is defined, including data flow, LLM integration, database schema, and API structure. Key UI/UX elements are designed. 
+System architecture is defined, including data flow, LLM integration, database schema, and API structure. Key UI/UX elements such as Trees, Nodes, Edges, and Flash Cards have prototype designs. 
 * UI/UX:  
   - Begin whiteboard process for landing page, tree page, SR learning page, create rough designs/wireframe 
 * Frontend: 
   - Define component hierarchy and page layouts.
 * Backend:
-  - Connect Groq API for general responses and structured outputs.
+  - Define Prisma Schema for key entities.
 
 ##### End Of Week 5 - Design
-High-fidelity mockups and finalized UI flows are completed. Early integration between frontend and backend begins.
+Detailed definition of all software components has been completed, including packages, classes, and units of abstraction.  Users can now sign in
 * UI/UX:  
-  - Begin whiteboard process for landing page, tree page, SR learning page, create rough designs/wireframe 
+  - Design for key components have been completed and are able to be implemented as React components styled with .scss.
 * Frontend: 
-  - Define component hierarchy and page layouts.
+  - A skeleton model of the tree and nodes have been designed and now are awaiting backend integration.
+  - User sign on page and landing page are functional
 * Backend:
-  - Connect Groq API for general responses and structured outputs.
+  - All REST endpoints have been defined for basic entities. This means that the frontend can create DB requests for Trees, Nodes, Users, Flash Cards, etc.
+  - Routes for User sign on have been created using nextJS OAuth
 
 ##### End Of Week 6 - Testing and Continuous Integration
-
-* UI/UX Validate design with UX testing, revise, and fix confusing areas  
-  * Frontend Display node content with loading/error states, tighten up the basic interactions  
-  * Backend Generate follow up nodes to predict future questions
+Users can now Create Trees and generate Nodes. User testing begins (hallway testing, friends, etc)
+* UI/UX:
+  - Design patterns are created for generic components as needed and exist on a design doc.
+  - UX tests are created and documented. Results of testing are documented as well.
+* Frontend:
+  - Tree and Nodes now support LLM generation using backend. Users can now create trees, create nodes, view trees, and view nodes.
+* Backend:
+  - Routes have been written connecting to Groq, allowing Frontend to make requests to LLMs. Requests both for a new tree and a follow-up node are defined and are able to maintain the context of the conversation.
 
 ##### End Of Week 7 - Implementation and Documentation
+Support for Flash Cards is added, and the Spaced Repetition Page is in progress, using a similar framework as the Flash Cards.
+* UI/UX:
+  -  Design pattern for Flash Cards has been finalized. In addition the design pattern for the spaced repetition page is finalized.
+  - UX Testing of Flash Cards is written and begins.
+* Frontend:
+  - Functionality for Flash Card feature is added. This includes the buttons to generate flash cards and the page to view it.
+* Backend:
+  - Additional Routes are added for the creation of Flash Cards for both single nodes and trees. Database has been modified to support spaced repetition page and most server request routes are completed.
 
-* UI/UX Implement UI with the frontend/backend website  
-  * Frontend Create practice screen and deck list for flashcards   
-  * Backend Connect correct histories together
+#### End of Week 8 - Beta Release
+Spaced Repetition Page is functional. Thus all functional requirements are at least in beta phase
+* UI/UX:
+  -  Validate design with UX testing, revise, and fix confusing areas  
+  - Testing begins for app as a whole
+* Frontend:
+  - Display node content with loading/error states, tighten up the basic interactions  
+* Backend:
+  -  Generate follow up nodes to predict future questions
 
-##### End Of Week 8 - Peer Review
+##### End Of Week 9 - Peer Review
+All functional requirements have gone through peer review, feedback is documented and is being addressed
 
-* UI/UX Go back to UX testing with people outside of class, continuing to change any confusing areas to create seamless website  
-  * Frontend Add test sections and result summaries  
-  * Backend Generate Quizzes
+* UI/UX:
+  - UX is throughly tested by all developers and by random users (hallway test)
+* Frontend:
+  - Final exhaustive testing of frontend / polish. Efforts are made to optimize ease of use. Bugs are fixed and quality of life features are implemented.
+* Backend:
+  - Final exhaustive testing of backend. There are no unexpected REST errors. 
 
-##### End Of Week 9 - Final Release
-All Functional Requirements are implemented and tested. Mobile app is complete (time permitting)
+##### End Of Week 10 - Final Release
+All Functional Requirements are implemented and tested. A production version is released with a public url.
 
-* UI/UX Finalize product, refining any UI inconsistencies, optimize performance  
-* Frontend Final exhaustive testing of frontend/ polish.  
-* Backend Adapt for mobile app version if we have time  
+* UI/UX:
+  - UX is throughly tested by all developers and by random users.
+* Frontend:
+  - Final exhaustive testing of frontend / polish. Efforts are made to optimize ease of use.
+* Backend:
+  - Final exhaustive testing of backend. There are no unexpected REST errors. 
+  - App is moved to production on Vercel.
 
-##### End Of Week 10 - Individual retrospective
+##### End Of Week 11 - Individual retrospective
 
-Product is ready, and is ready for presentation.
+Product is released and is ready for presentation. Individual retrospective complete.
 
 ### Major risks that may prevent the completion of the project (And Mitigations)
 

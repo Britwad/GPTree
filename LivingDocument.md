@@ -512,7 +512,132 @@ Product is released and is ready for presentation. Individual retrospective comp
 
 External feedback will be the most useful the moment we have a functional backend/frontend. Once it is possible to generate a tree at all, it will be important to get user feedback for structural elements as well as potential ideas for features. As features are tweaked and added, we will want even more feedback. We will get this feedback by consulting friends, acquaintances, and random people in hallways. Ideally they can try out the feature with minimal context, so that we can assess the usability of the product.
 
-## **7\. Software Architecture:**
+## **7. Software Architecture**
+
+### 7.1 Overview of System Architecture
+
+The components of our app that power the backend provide two main functionalities: first, we have a database, Prisma, that will allow us to store all of the ‘things’ that a user will be able to access through GPTree, and second, Groq, the LLM that will actually allow us to generate responses to the questions a user asks. For the frontend, we have a React app that will allow the client to see their trees and interact with our program. We are also using **NextAuth.js** to manage user authentication through both **Google sign-in** and **magic link** login methods.
+
+To provide an interface between our frontend app and the tools in our backend (Prisma, Groq), we have an API layer that will allow the frontend code to ‘talk’ to the backend. We don’t want the client side code to directly interact with our database (which is already impossible with Prisma) or Groq for security reasons, control reasons, authorization reasons, etc. so we have ‘REST endpoints’ that our frontend will call. We can use the standard HTTP/HTTPS ‘fetch’ method to access these endpoints, which will then use server side code to call the appropriate tool’s API. Our frontend will receive JSON responses from these calls, and then parse them appropriately.
+
+We plan to **deploy GPTree on Vercel**, which provides built-in support for Next.js serverless functions and easy integration with Prisma. This allows for efficient deployment, continuous integration, and scaling with minimal configuration.
+
+### 7.2 Data Storage and Schema
+
+In general, there are four ‘things’ we need to store: **User information**, **Trees**, **Nodes**, and **Flashcards**. Prisma gives us a convenient abstraction about our relational database, as we can store actual objects and collections of objects inside of it. Prisma handles the conversion of this object abstraction into a form that actually matches the RDB abstraction, so we just have to think about objects. Our top-level schema is represented below in simplified database tables.
+
+The first four models — User, Account, Session, and VerificationToken — are required by NextAuth.js to manage authentication and user sessions. They securely store user identities, linked login providers, active sessions, and verification tokens, forming the foundation that all GPTree data depends on.
+
+---
+
+#### **User**
+
+| **Field Name** | **Type** | **Key** | **Description** |
+|----------------|-----------|----------|-----------------|
+| id | String | **PK** | Unique identifier for each user (auto-generated cuid). |
+| name | String? | — | Full name of the user (optional). |
+| email | String? | **UQ** | User's email address (used for login). |
+| emailVerified | DateTime? | — | Timestamp of email verification. |
+| createdAt | DateTime | — | When the user account was created. |
+| image | String? | — | Profile picture URL. |
+| accounts | Account[] | — | All authentication provider accounts linked to this user. |
+| sessions | Session[] | — | All active sessions for this user. |
+| trees | Tree[] | — | All trees created by this user. |
+
+---
+
+#### **Account**
+
+| **Field Name** | **Type** | **Key** | **Description** |
+|----------------|-----------|----------|-----------------|
+| id | String | **PK** | Unique identifier for each account record. |
+| userId | String | **FK → User(id)** | References the user who owns this account. |
+| type | String | — | Type of authentication (e.g., "oauth", "email"). |
+| provider | String | — | Name of the authentication provider (e.g., "google", "auth0"). |
+| providerAccountId | String | **UQ (per provider)** | Unique account ID assigned by the provider. |
+| refresh_token | String? | — | OAuth refresh token, if provided. |
+| access_token | String? | — | OAuth access token. |
+| expires_at | Int? | — | Expiration timestamp for the token. |
+| token_type | String? | — | Type of access token (e.g., "Bearer"). |
+| scope | String? | — | OAuth scopes granted by the provider. |
+| id_token | String? | — | ID token returned by the provider. |
+| session_state | String? | — | Additional session state data. |
+| user | User | — | Relation to **User** (many-to-one). |
+
+---
+
+#### **Session**
+
+| **Field Name** | **Type** | **Key** | **Description** |
+|----------------|-----------|----------|-----------------|
+| id | String | **PK** | Unique identifier for the session record. |
+| sessionToken | String | **UQ** | Token identifying the user session. |
+| userId | String | **FK → User(id)** | Links the session to its associated user. |
+| expires | DateTime | — | Timestamp of session expiration. |
+| user | User | — | Relation to **User** (many-to-one). |
+
+---
+
+#### **VerificationToken**
+
+| **Field Name** | **Type** | **Key** | **Description** |
+|----------------|-----------|----------|-----------------|
+| identifier | String | — | The email or identifier of the user. |
+| token | String | **UQ** | Token used for magic link or email verification. |
+| expires | DateTime | — | Timestamp when this token becomes invalid. |
+| *(no relations)* | — | — | Standalone table used for login verification. |
+
+---
+
+#### **Tree**
+
+| **Field Name** | **Type** | **Key** | **Description** |
+|----------------|-----------|----------|-----------------|
+| id | Int | **PK** | Unique identifier for each learning tree. |
+| name | String | — | Name or title of the tree. |
+| userId | String | **FK → User(id)** | References the user who owns the tree. |
+| createdAt | DateTime | — | When the tree was created. |
+| updatedAt | DateTime | — | Automatically updates whenever the tree changes. |
+| user | User | — | Relation to **User** (many-to-one). |
+| node | Node[] | — | Relation to **Node** (one-to-many). |
+
+---
+
+#### **Node**
+
+| **Field Name** | **Type** | **Key** | **Description** |
+|----------------|-----------|----------|-----------------|
+| id | Int | **PK** | Unique identifier for each node. |
+| name | String | — | Short name or title for the node. |
+| question | String | — | The question or topic that the node represents. |
+| content | String | — | The generated explanation or main content of the node. |
+| followups | String[] | — | List of suggested follow-up questions. |
+| treeId | Int | **FK → Tree(id)** | Links the node to its parent tree. |
+| tree | Tree | — | Relation to **Tree** (many-to-one). |
+| flashcards | Flashcard[] | — | Relation to **Flashcard** (one-to-many). |
+
+---
+
+#### **Flashcard**
+
+| **Field Name** | **Type** | **Key** | **Description** |
+|----------------|-----------|----------|-----------------|
+| id | Int | **PK** | Unique identifier for each flashcard. |
+| name | String | — | Title or keyword label for the flashcard. |
+| content | String | — | The question-and-answer text content of the flashcard. |
+| nodeId | Int | **FK → Node(id)** | References the node that this flashcard belongs to. |
+| node | Node | — | Relation to **Node** (many-to-one). |
+
+
+
+### 7.3 Assumptions
+
+One large assumption we’re making is that the responses we get from Groq will be generally acceptable to the user. There’s a limit to what we can do to prevent or handle hallucinations, especially with more complex topics that we might not account for during development. While this is a risk we would have to mitigate with any LLM, it’s a general assumption that the majority of what the user gets back will be of good quality. If, for whatever reason, the LLM we have spits out incorrect, misleading, or confusing information, it would compromise the quality of GPTree, meaning we need to be especially cautious when working with the LLM component of our system (as in choosing what context we give it, how user questions convert to prompts, etc.).
+
+### 7.4 Decisions and Alternatives
+One decision we made is to use Next.js as our framework, but we could have chosen something else like Remix. Next.js has a more traditional separation between client side code and server side code, while Remix has files that contain both. A big pro for Next.js is that our team members are familiar with this framework, either from personal projects or work done in another CSE class at UW, which means we can spend less time learning how it works. Remix is entirely different, and its learning curve can be steep, which could end up being costly to our schedule. That said, Next.js isn’t perfect, and after getting over the initial learning curve for Remix, it’s possible that the streamlined methods to make API calls (loader and action methods in Remix) would be easier to write/implement than much of the tedious work to write, handle, and parse fetch methods. We still think that our familiarity with Next.js, as well as its frequent use (and already optimized integration) with other parts of our stack like Prisma and Vercel offers enough of an advantage to choose it over Remix.
+
+Another decision was to use Prisma instead of another ORM (object relational mapper, I.E. the abstraction between a normal RDB and one with objects) such as Drizzle. Our choice to use Next.js as our framework is crucial in choosing an ORM, as different options have different levels of compatibility with our chosen framework. In this case, Prisma has Next.js guides in its official documentation, and very deep integration with Next.js, meaning that, not only is using Prisma in our project easier, but troubleshooting will also be easier because of the larger amount of tutorials, guides, and support that other developers have created. Drizzle does offer its own advantages though, most notably, its similarity to traditional SQL. Writing a query in Drizzle is slightly more explicit than in Prisma, and as a result, slightly more intuitive. This means that we could spend less time trying to learn new methods and query techniques, and rely on prior knowledge about SQL. Considering the time we’ve ‘saved’ by choosing Next.js, however, it’s reasonable to allocate some extra time to familiarize ourselves with Prisma, as its integration with Next.js will most likely make our lives much easier when working with our database farther down the line.
 
 ## **8. Software Design:**
 

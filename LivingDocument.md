@@ -641,4 +641,80 @@ Another decision was to use Prisma instead of another ORM (object relational map
 
 ## **8. Software Design:**
 
+### 8.1 Frontend — React (Next.js)
+**Responsibilities:**  
+- Display learning trees, nodes, and flashcards.  
+- Handle interactions (follow-ups, generate flashcards, study).  
+- Call backend REST endpoints and manage basic client state.
+
+**Formation:**  
+- Built with **Next.js** (routing/SSR) and **React** components.  
+- Organized into pages (Tree view, Study) and reusable components (Node, Flashcard).  
+- Uses `fetch` over HTTPS for API calls.  
+- Deployed on **Vercel** alongside the backend.
+
+---
+
+### 8.2 Authentication — NextAuth.js
+**Responsibilities:**  
+- Authentication and session management.  
+- Google sign-in and magic link email login.  
+- Provide secure user identity to frontend and backend.
+
+**Formation:**  
+- Implemented with **NextAuth.js** as an API route.  
+- Cookie-based sessions accessible server-side and client-side.
+
+---
+
+### 8.3 API Layer — REST Endpoints
+**Responsibilities:**  
+- Interface between frontend and backend services.  
+- Expose endpoints for Trees, Nodes, Flashcards, and Study (SRS).  
+- Enforce authentication and authorization.
+
+**Formation:**  
+- **Next.js API routes** returning and accepting JSON.  
+- Internally calls **Prisma** (database) and **Groq** (LLM) as needed.
+
+---
+
+### 8.4 Database — Prisma (PostgreSQL)
+**Responsibilities:**  
+- Persist Users, Trees, Nodes, and Flashcards.  
+- Maintain data integrity and relationships (e.g., Node belongs to Tree).  
+- Support create, read, and update operations for learning structures.
+
+**Formation:**  
+- **Prisma ORM** over **PostgreSQL**.  
+- Models defined in a Prisma schema generate a type-safe client used in API routes.  
+- All database access is server-side only.
+
+---
+
+### 8.5 LLM Integration — Groq API
+**Responsibilities:**  
+- Generate node content and flashcards from user prompts.  
+- Provide suggested follow-up questions and structured learning output.  
+- Act as the content generation layer.
+
+**Formation:**  
+- Backend calls the **Groq API** from routes or services.  
+- Prompts include the user’s question and context; outputs are parsed and validated server-side.  
+- Timeouts and errors are handled gracefully for a stable UI.
+
+---
+
+### 8.6 Deployment — Vercel
+**Responsibilities:**  
+- Host the frontend and serverless API.  
+- Provide continuous deployment and scaling.  
+- Manage environment configuration.
+
+**Formation:**  
+- **Vercel** deploys the Next.js app; API routes run as serverless functions.  
+- **Prisma** connects to the hosted PostgreSQL database at runtime.  
+- Preview deployments are used for feature branches.
+
+
 ## **9\. Coding Guidelines:**

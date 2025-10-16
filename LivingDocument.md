@@ -650,7 +650,7 @@ Another decision was to use Prisma instead of another ORM (object relational map
 **Formation:**  
 - Built with **Next.js** (routing/SSR) and **React** components.  
 - Organized into pages (Tree view, Study) and reusable components (Node, Flashcard).  
-- Uses `fetch` over HTTPS for API calls.  
+- Uses fetch over HTTPS for API calls.  
 - Deployed on **Vercel** alongside the backend.
 
 ---

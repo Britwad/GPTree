@@ -14,8 +14,8 @@ export const CreateUserSchema = z.object({
 // We can export the type of the CreateUserSchema for use elsewhere
 export type CreateUser = z.infer<typeof CreateUserSchema>;
 
-// Schema for what we expect after creating a user
-export const UserCreatedSchema = z.object({
+// Schema for what we expect from prisma when getting a user
+export const UserSchema = z.object({
     id: z.string().min(1),
     name: z.string().min(1).max(30).optional().nullable(),
     email: z.email(),
@@ -30,4 +30,10 @@ export const UserCreatedSchema = z.object({
 });
 
 // We can export this too
-export type UserCreated = z.infer<typeof UserCreatedSchema>;
+export type User = z.infer<typeof UserSchema>;
+
+// Schema for requesting a user by id
+export const GetUserByIdSchema = z.object({
+    id: z.string().min(1)
+});
+export type GetUserById = z.infer<typeof GetUserByIdSchema>;

@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { GetUserById, GetUserByIdSchema } from "@/lib/validation_schemas";
+import { GetUserById, GetUserByIdSchema, User } from "@/lib/validation_schemas";
 
 // Get a user by id
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {

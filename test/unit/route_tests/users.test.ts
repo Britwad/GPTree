@@ -112,4 +112,18 @@ describe('Testing user endpoints', () => {
         expect(fetched_user.name).toEqual(created_user.name);
         expect(fetched_user.email).toEqual(created_user.email);
     });
+
+    test('Getting a user with a bad id returns null', async () => {
+        const req = new NextRequest('http://fake_url/api/users/nonexistentid', {
+            method: 'GET',
+        });
+
+        // Now call the route directly
+        const res = await GetUser(req, { params: { id: 'nonexistentid' } });
+        
+        // Check response
+        expect(res.status).toEqual(200);
+        const fetched_user = await res.json();
+        expect(fetched_user).toBeNull();
+    });
 });

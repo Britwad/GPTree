@@ -61,13 +61,13 @@ model VerificationToken {
 }
 
 model Tree {
-  id         Int         @id @default(autoincrement())
-  name       String
-  userId     String
-  user       User        @relation(fields: [userId], references: [id])
-  node       Node[]
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  id        Int      @id @default(autoincrement())
+  name      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  node      Node[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Node {
@@ -79,13 +79,18 @@ model Node {
   treeId     Int
   tree       Tree        @relation(fields: [treeId], references: [id])
   flashcards Flashcard[]
+
+  // Self-relation for parent → children
+  parentId Int?
+  parent   Node?  @relation("NodeToChildren", fields: [parentId], references: [id])
+  children Node[] @relation("NodeToChildren")
 }
 
 model Flashcard {
-  id       Int    @id @default(autoincrement())
-  name     String
-  content  String
-  nodeId   Int
-  node     Node   @relation(fields: [nodeId], references: [id])
-  userId   String
+  id      Int    @id @default(autoincrement())
+  name    String
+  content String
+  nodeId  Int
+  node    Node   @relation(fields: [nodeId], references: [id])
+  userId  String
 }

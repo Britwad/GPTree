@@ -614,6 +614,9 @@ The first four models — User, Account, Session, and VerificationToken — are 
 | followups | String[] | — | List of suggested follow-up questions. |
 | treeId | Int | **FK → Tree(id)** | Links the node to its parent tree. |
 | tree | Tree | — | Relation to **Tree** (many-to-one). |
+| parentId | Int? | **FK → Node(id)** | Optional reference to the parent node (if this node is a child). |
+| parent | Node? | — | Relation to the parent **Node** (many-to-one). |
+| children | Node[] | — | Relation to all child **Nodes** (one-to-many self-relation). |
 | flashcards | Flashcard[] | — | Relation to **Flashcard** (one-to-many). |
 
 ---

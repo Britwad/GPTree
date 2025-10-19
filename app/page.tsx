@@ -1,10 +1,13 @@
 "use client";
 import { useRouter } from 'next/navigation';
 import { signIn, signOut, useSession } from "next-auth/react"
+import { useState } from 'react';
 
 export default function LandingPage() {
   const { data: session } = useSession()
   const router = useRouter();
+
+  const [userEmail, setUserEmail] = useState<string>("");
 
   const handleClick = () => {
     router.push('/tree');
@@ -19,14 +22,28 @@ export default function LandingPage() {
         <button onClick={handleClick}>
           New Tree
         </button>
+        <button
+          onClick={() => signOut()}
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+        >
+          Sign Out
+        </button>
       </div >
-    ) : (
+    ) : (<>
       <button
         onClick={() => signIn("google")}
         className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
       >
-        Sign in with Google
+        Continue with Google
       </button>
+      <input value={userEmail} onChange={(e) => setUserEmail(e.target.value)}/>
+      <button
+        onClick={() => signIn("email", { email: userEmail})}
+        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+      >
+        Continue with Email
+      </button>
+    </>
     )
   );
 }

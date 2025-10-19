@@ -1,6 +1,6 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
-// import Email from "next-auth/providers/email"
+import Email from "next-auth/providers/email"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import prisma from "@/lib/prisma"
 
@@ -11,10 +11,10 @@ const handler = NextAuth({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
-    // Email({
-    //   server: process.env.EMAIL_SERVER!, // e.g., SMTP connection string
-    //   from: process.env.EMAIL_FROM!,     // sender email
-    // }),
+    Email({
+      server: process.env.EMAIL_SERVER!, // e.g., SMTP connection string
+      from: process.env.EMAIL_FROM!,     // sender email
+    }),
   ],
   session: { strategy: "jwt" },
 //   pages: {

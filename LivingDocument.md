@@ -416,7 +416,7 @@ Our database will be hosted as a PostgreSQL database on Prisma. Prisma ORM will 
 **Development Environment:**
 Development will take place in Visual Studio Code, using GitHub for version control and NPM for package management.
 
-### Team Members
+### Team Structure
 **Brittan: Frontend/Backend**. This team member has experience in the full stack development using [Next.js](http://Next.js) and PostgreSQL. Since GPTree was their idea, they will be helping out on developing and connecting the front and backend, and ensuring general cohesion over the whole project.
 
 **Jungho: Backend**, we need this role to work with AI models and make sure data can be stored nicely into nodes, maintaining correct history per node (a node should contain the context of previous nodes). Is a good fit for the role having worked with OpenAI APIs and is interested in doing more.
@@ -427,7 +427,7 @@ Development will take place in Visual Studio Code, using GitHub for version cont
 
 **Jackson: Backend**. This role is necessary to work with user data and the database of trees/related content, as well as the LLM’s that will generate the content that users see. He is a good fit for the role primarily because he is highly interested in learning about developing a backend.
 
-### Timeline
+### Project schedule
 
 ##### End Of Week 3 - Requirements & Team Policies
 GPTree functional and non-functional requirements are solidified. Team processes are documented.
@@ -513,7 +513,7 @@ All Functional Requirements are implemented and tested. A production version is 
 
 Product is released and is ready for presentation. Individual retrospective complete.
 
-### Major risks
+### Risk assessment
 
 * Groq may fail as a LLM provider and we are unable to find affordable and functional alternatives  
   - We will design our product to be highly modular with regard to both the LLM API provider and the LLM model itself. This will allow us to be able to easily switch both models and providers if ever deemed necessary.
@@ -522,9 +522,15 @@ Product is released and is ready for presentation. Individual retrospective comp
 * Interactive tree or nodes more complex than expected and blocks core features, causing delays to the release. 
    - To mitigate this, we will have the frontend working on a UI/UX skeleton of the nodes for the trees that later can be populated with LLM generated information. We will ensure that the frontend and backend on on the same page regarding the data structure of the trees and nodes, so that the frontend is ready for the API response of the backend.
 
+### Test plan & bugs
+
+### Documentation plan
+
 ### Getting External feedback
 
 External feedback will be the most useful the moment we have a functional backend/frontend. Once it is possible to generate a tree at all, it will be important to get user feedback for structural elements as well as potential ideas for features. As features are tweaked and added, we will want even more feedback. We will get this feedback by consulting friends, acquaintances, and random people in hallways. Ideally they can try out the feature with minimal context, so that we can assess the usability of the product.
+
+
 
 ## **7. Software Architecture**
 
@@ -750,4 +756,3 @@ Guide: [https://developer.mozilla.org/en-US/docs/MDN/Writing_guidelines/Code_sty
 
 We chose this because it follows web standards and stresses readability and accessibility, which keeps styles simple and maintainable.
 Enforcement: Stylelint with the standard config and Prettier for formatting. Continuous integration runs style checks on every pull request. Precommit hooks check changed files. Reviewers confirm selector names, file structure, and comments follow the MDN guidance.
-## **10. Process Description :**

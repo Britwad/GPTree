@@ -526,6 +526,10 @@ Product is released and is ready for presentation. Individual retrospective comp
 
 ### Documentation plan
 
+* We will document every software component and API endpoints in our Software Design section of this document
+  - Make sure to note how components relate to each other
+  - What endpoints are expecting and doing
+
 ### Getting External feedback
 
 External feedback will be the most useful the moment we have a functional backend/frontend. Once it is possible to generate a tree at all, it will be important to get user feedback for structural elements as well as potential ideas for features. As features are tweaked and added, we will want even more feedback. We will get this feedback by consulting friends, acquaintances, and random people in hallways. Ideally they can try out the feature with minimal context, so that we can assess the usability of the product.

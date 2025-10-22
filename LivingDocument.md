@@ -619,12 +619,44 @@ Product is released and is ready for presentation. Individual retrospective comp
 
 ### Test plan & bugs
 
+#### Unit Tests
+
+Unit tests will verify that the smallest functional parts of the system behave as expected. Since our backend follows a REST architecture, we will write Jest tests for each REST endpoint covering typical, boundary, and failure cases. This includes:
+
+- User routes: authentication, sessions, and access control.
+- Tree routes: creation, retrieval, and updates of user trees.
+- Node routes: generation of nodes, retrieval of nodes
+- Flashcard routes: generation of flashcards, retrieval of nodes, and spaced-repetition scheduling logic.
+
+Mock data will be used for database calls (via Prisma mock client) and for LLM responses, so that tests remain fast and deterministic. Each test will check both the returned JSON structure and the database side effects, ensuring schema alignment. We consider our unit test suite sufficient when it covers all REST endpoints and their common error cases.
+
+
+#### Usability Testing
+
+Usability testing will take place once the main user flows are implemented. Our approach will be “hallway testing”: informal but structured sessions where participants use GPTree with minimal explanation while we observe where confusion or friction occurs.
+Each round of usability testing will have specific goals (e.g., “Can users find how to generate a follow-up node?” or “Do users understand how to review flashcards?”). Results will be summarized and prioritized into GitHub Issues, guiding the next design or UX iteration.
+
+#### Bug Tracking
+
+All bugs and feature regressions will be tracked using GitHub Issues. Each issue will include:
+
+- Clear description of the problem and steps to reproduce
+
+- Screenshots or stack traces where applicable
+
+- Labels indicating severity, area (frontend/backend/UI), and milestone
+
+- Assignment to responsible team members
+
+Issues discovered through testing will be linked to specific commits or pull requests for traceability. Resolved issues will be verified in the next test cycle before closing.
+
 ### Documentation plan
 
 * We will document every software component and API endpoints in our Software Design section of this document
-  - Make sure to note how components relate to each other
-  - What endpoints are expecting and doing
+  - This will include making sure to note how components relate to each other. And documenting our React Component Hierarchy.
+  - There will be documentation for each REST endpoint in a .md file in git. In this file we plan to cover API request parameters, and expected response.
 * For users documentation, we will have a help/FAQ page if they are to get stuck at any point while using the site
+  - In support of this, we plan to implement either a "learn more" hyperlink or question mark button that will link the user to relevant guide pages if they need further explanation of using tools. Although we also plan on ensuring that GPTree is as intuitive as possible for users.
 
 ### Getting External feedback
 

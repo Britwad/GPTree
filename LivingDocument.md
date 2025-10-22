@@ -560,20 +560,76 @@ Product is released and is ready for presentation. Individual retrospective comp
 ### Risk assessment
 
 * Groq may fail as a LLM provider and we are unable to find affordable and functional alternatives  
-  - We will design our product to be highly modular with regard to both the LLM API provider and the LLM model itself. This will allow us to be able to easily switch both models and providers if ever deemed necessary.
+  - Low liklihood of occuring
+  - High impact if it occurs
+  - The liklihood of it occuring is low because Groq is known for being reliable due to its 
+    performance-focused approach The impact is high because if the Groq fails as an LLM provider, 
+    it could lead to loss of functionality in the website. We as the team would need to refactor 
+    large portions of code and lead to not finishing the project on time. 
+  - Steps you are taking to reduce the likelihood or impact, and steps to permit better estimates;
+  - To reduce the likihood or impact, the team will arefully read API docs to not use any depricated features
+  - To detect if Groq has failed on us, we will look for any thrown API error responses
+  - Should this occur, we would look into what error is being thrown, find where the issue is and debug. We will 
+    design our product to be highly modular with regard to both the LLM API provider and  the LLM model itself. 
+    This will allow us to be able to easily switch both models and providers if ever deemed necessary.
 * Team members may not be able to find enough time for development and the project may fail to stay on schedule.  
-  - To mitigate this, there will be a constant monitoring of progress to ensure that either the team stays on schedule, or the correct steps are made to either adjust the schedule, expectations for the project, or to increase the productivity of the team.
+  - Medium liklihood of occuring
+  - Meduim impact if it occurs
+  - It can be hard to estimate how long a task will take us, especially since we are students and are still learning the pacing
+    of larger projects. It is not rare for a team to find they don't have as much time as they hoped, so although it could be hard,
+    there are many different tatics we can use to overcome this. 
+  - Steps we are taking in order to avoid this from happening are, looking over the schedule, asking the team where they are at and
+    what they are currently working on so everyone is able to be on track.
+  - To detect the problem, we look back at our planned out schedule, making sure we are all on track
+  - To mitigate this, there will be a constant monitoring of progress to ensure that either the team stays on schedule, 
+    or the correct steps are made to either adjust the schedule, expectations for the project, or to increase the productivity of 
+    the team. Additionally, roles in the team will shift in order to help whichever side of the project needs more help.
 * Interactive tree or nodes more complex than expected and blocks core features, causing delays to the release. 
-   - To mitigate this, we will have the frontend working on a UI/UX skeleton of the nodes for the trees that later can be populated with LLM generated information. We will ensure that the frontend and backend on on the same page regarding the data structure of the trees and nodes, so that the frontend is ready for the API response of the backend.
+  - Low liklihood
+  - Low impact to occur
+  - Since we are planning to start out really simple and work our way up to a more complex trees/nodes, we plan to solidify before
+    adding a layer of complexities, so the liklihood should be low. If it was to happen, we would backtrack to our latest design that
+    worked
+  - As previously said, in order to avoid complications with complex tree and node features, we plan to begin with simple implementations,
+    adding layers of complexity once the prevoius layer is solid. We check that a "layer of complexity" is solid with testing. 
+  - To detect this problem we will interact with the website ourselves and use tests to find any issues
+  - To mitigate this, we will have the frontend working on a UI/UX skeleton of the nodes for the trees that later can be 
+   populated with LLM generated information. We will ensure that the frontend and backend on on the same page regarding the data structure of the trees and nodes, so that the frontend is ready for the API response of the backend.
+* May focus too much on the stretch goals, before solidifying the necessary features for the site.
+  - Low liklihood
+  - Meduim impact
+  - At the very beginning of our project planning we chose what our strech goals are, and as long as people stick to the plan, the liklihood
+    it happening are very low. If we do begin to focus to much on the strech goals, we may lose time that should have been used for the 
+    must haves of the project, setting us back.
+  - The steps to avoid this problem are, we plan to communicate what we are working on, double checking that it aligns with the schedule.
+  - We would detect this issue by looking at how much we have completed for the project, and deciding as a team which stretch goals would
+    serve us best for whatever time we may have left before the deadline
+  - To mitigate this, we plan to continue to remind each other of what are the needs and wants of the project and what should be completed
+    for that week
+* Overuse or spikes in traffic could exceed limits, causing service interuptions
+  - Medium liklihood
+  - High impact
+  - The likihood of it happening are meduim because rate limits are common during testing and 
+    scaling phases. The impact is high because if it is triggered, the functionality of the 
+    website relying on the LLM could slow or completely stop.
+  - To reduce the likilihood or impact, we could add caching for repeated queries to lessen API
+    calls
+  - To detect the problem we would monitor the API status code error indicating too many requests
+     in a short period.
 
 ### Test plan & bugs
 
 ### Documentation plan
+<<<<<<< HEAD
 
 * We will document every software component and API endpoints in our Software Design section of this document
   - Make sure to note how components relate to each other
   - What endpoints are expecting and doing
 
+=======
+developer
+user
+>>>>>>> e0a63f7 (Added to the Risk assesment section)
 ### Getting External feedback
 
 External feedback will be the most useful the moment we have a functional backend/frontend. Once it is possible to generate a tree at all, it will be important to get user feedback for structural elements as well as potential ideas for features. As features are tweaked and added, we will want even more feedback. We will get this feedback by consulting friends, acquaintances, and random people in hallways. Ideally they can try out the feature with minimal context, so that we can assess the usability of the product.

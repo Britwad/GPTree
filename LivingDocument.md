@@ -532,11 +532,37 @@ External feedback will be the most useful the moment we have a functional backen
 
 The components of our app that power the backend provide two main functionalities: first, we have a database, Prisma, that will allow us to store all of the ‘things’ that a user will be able to access through GPTree, and second, Groq, the LLM that will actually allow us to generate responses to the questions a user asks. For the frontend, we have a React app that will allow the client to see their trees and interact with our program. We are also using **NextAuth.js** to manage user authentication through both **Google sign-in** and **magic link** login methods.
 
-To provide an interface between our frontend app and the tools in our backend (Prisma, Groq), we have an API layer that will allow the frontend code to ‘talk’ to the backend. We don’t want the client side code to directly interact with our database (which is already impossible with Prisma) or Groq for security reasons, control reasons, authorization reasons, etc. so we have ‘REST endpoints’ that our frontend will call. We can use the standard HTTP/HTTPS ‘fetch’ method to access these endpoints, which will then use server side code to call the appropriate tool’s API. Our frontend will receive JSON responses from these calls, and then parse them appropriately.
+To provide an interface between our frontend app and the tools in our backend (Prisma, Groq), we have an API layer that will allow the frontend code to ‘talk’ to the backend. We don’t want the client side code to directly interact with our database (which is already impossible with Prisma) or Groq for security reasons, control reasons, authorization reasons, etc. so we have ‘REST endpoints’ that our frontend will call. We can
+use the standard HTTP/HTTPS ‘fetchʼ to access these endpoints, which will then use server side code to call the appropriate tool’s API. Our frontend will receive JSON responses from these calls, and then parse them appropriately.
 
 We plan to **deploy GPTree on Vercel**, which provides built-in support for Next.js serverless functions and easy integration with Prisma. This allows for efficient deployment, continuous integration, and scaling with minimal configuration.
 
-### 7.2 Data Storage and Schema
+### 7.2 Detailed View of System Architecture
+
+First, we will specify the way our fronend and backend communicate. We can call our endpoints with `fetch`, which allows us to provide information through the url or through the request body. When dealing with a request body, we use the NextRequest object's .json() method to convert the request into JSON, and the ZodObject .parse() method to convert this JSON into the appropriate record, which gives us the ability to catch an error if the request is not properly formatted. In general, we have our own schemas defined for every inetraction our frontend and backend have (for example, the schema that the frontend must satisfy to create a new user, plus the schema of what it will get back), and all of these are handled with Zod. Note that the validation_schemas.ts file contains any and all schemas we send/recieve or otherwise need to parse.
+
+We will move from the 'farthest' parts of the backend (I.E. Prisma and Groq) to the 'closest' (I.E. the app that the client interacts with).
+
+- Prisma
+  - Includes its own methods for us to call in our backend: `create()`, `findMany()`, `deleteMany()`, etc.
+  - After parsing a request to ensure it contains the information prisma requires to add/delete/alter entries in tables (e.g. CreateUserSchema in validation_schemas.ts), the route will call the appropriate prisma method, and then handle the returned information as needed
+  - Depending on the operation, the backend route will send a different JSON object back to the client, for example, when a user is created, this JSON contains a record matching the `User` type in validation_schemas.t
+- Groq
+  - Includes its own methods for us to call in our backend: `create()`, `createInterface()`, etc.
+  - Just like with Prisma, the backend will parse a request via Zod, then call the appropriate method from the Groq API
+  - Groq, however, will also access our database in order to get access to the text associated with nodes that give the LLM the context it needs to generate good responses, and this will occur with the same prisma methods that the other routes use
+  - Once the route gets what it needs from Groq, it will complete any remaining operations and return a JSON object to the client containing the response and any other data we choose to include
+- API Layer
+  - Consists of a file structure that Next.js uses for handling route navigation/resolution, where 'route.ts' files exist at all endpoints that our backend provides
+  - The client can request, alter, or upload information to our database via `GET` and `POST` methods implemented in these files
+  - Routes generally accept a NextRequest object, and somtimes other paramters, and return a JSON object via NextResponse.json() to the client
+  - Routes in the backend are the only area where we actually reach out to our external tool API's (Prisma and Groq)
+- Frontend
+  - Navigation between different frontend pages occurs via the Next.js router, and backend interaction occurs via `fetch` methods.
+  - The frontend will handle any and all HTML for the webpage, but will utilize the JSON it recieves from the backend 
+  - When calling backend endpoints, the frontend will use the information stored in its own state to provide the information these routes require, and if it isn't able to, it will change its behavior (i.e. the HTML it's displaying) depending on the status codes it recieves from the server
+
+### 7.3 Data Storage and Schema
 
 In general, there are four ‘things’ we need to store: **User information**, **Trees**, **Nodes**, and **Flashcards**. Prisma gives us a convenient abstraction about our relational database, as we can store actual objects and collections of objects inside of it. Prisma handles the conversion of this object abstraction into a form that actually matches the RDB abstraction, so we just have to think about objects. Our top-level schema is represented below in simplified database tables.
 
@@ -647,11 +673,11 @@ The first four models — User, Account, Session, and VerificationToken — are 
 
 
 
-### 7.3 Assumptions
+### 7.4 Assumptions
 
 One large assumption we’re making is that the responses we get from Groq will be generally acceptable to the user. There’s a limit to what we can do to prevent or handle hallucinations, especially with more complex topics that we might not account for during development. While this is a risk we would have to mitigate with any LLM, it’s a general assumption that the majority of what the user gets back will be of good quality. If, for whatever reason, the LLM we have spits out incorrect, misleading, or confusing information, it would compromise the quality of GPTree, meaning we need to be especially cautious when working with the LLM component of our system (as in choosing what context we give it, how user questions convert to prompts, etc.).
 
-### 7.4 Decisions and Alternatives
+### 7.5 Decisions and Alternatives
 One decision we made is to use Next.js as our framework, but we could have chosen something else like Remix. Next.js has a more traditional separation between client side code and server side code, while Remix has files that contain both. A big pro for Next.js is that our team members are familiar with this framework, either from personal projects or work done in another CSE class at UW, which means we can spend less time learning how it works. Remix is entirely different, and its learning curve can be steep, which could end up being costly to our schedule. That said, Next.js isn’t perfect, and after getting over the initial learning curve for Remix, it’s possible that the streamlined methods to make API calls (loader and action methods in Remix) would be easier to write/implement than much of the tedious work to write, handle, and parse fetch methods. We still think that our familiarity with Next.js, as well as its frequent use (and already optimized integration) with other parts of our stack like Prisma and Vercel offers enough of an advantage to choose it over Remix.
 
 Another decision was to use Prisma instead of another ORM (object relational mapper, I.E. the abstraction between a normal RDB and one with objects) such as Drizzle. Our choice to use Next.js as our framework is crucial in choosing an ORM, as different options have different levels of compatibility with our chosen framework. In this case, Prisma has Next.js guides in its official documentation, and very deep integration with Next.js, meaning that, not only is using Prisma in our project easier, but troubleshooting will also be easier because of the larger amount of tutorials, guides, and support that other developers have created. Drizzle does offer its own advantages though, most notably, its similarity to traditional SQL. Writing a query in Drizzle is slightly more explicit than in Prisma, and as a result, slightly more intuitive. This means that we could spend less time trying to learn new methods and query techniques, and rely on prior knowledge about SQL. Considering the time we’ve ‘saved’ by choosing Next.js, however, it’s reasonable to allocate some extra time to familiarize ourselves with Prisma, as its integration with Next.js will most likely make our lives much easier when working with our database farther down the line.

@@ -62,6 +62,7 @@ model VerificationToken {
 
 model Tree {
   id        Int      @id @default(autoincrement())
+  hash      String   @unique @default(uuid())
   name      String
   userId    String
   user      User     @relation(fields: [userId], references: [id])

@@ -1,30 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { error } from "console";
-
-const CreateNodeSchema = z.object({
-    parentId: z.union([z.string(), z.number()]),
-    message: z.string().min(1, "Message cannot be empty"),
-    name: z.string().optional().default("node"),
-    userId: z.string().min(1, "User ID is required"),
-});
+import { type CreateNode, CreateNodeSchema } from "@/lib/validation_schemas";
 
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
+
         const parsed = CreateNodeSchema.parse(body);
 
-        const parentId = typeof parsed.parentId === 'string' ? parseInt(parsed.parentId, 10) : parsed.parentId;
-        if (Number.isNaN(parentId)) {
-            return NextResponse.json(
-                { error: "Invalid parentId" },
-                { status: 400 }
-            );
-        }
-
         // check if parent exists
-        const parent = await prisma.node.findUnique({ where: { id: parentId } });
+        const parent = await prisma.node.findUnique({ where: { id: parsed.parentId } });
         if (!parent) {
             return NextResponse.json(
                 { error: "Parent node not found" },
@@ -47,9 +33,9 @@ export async function POST(request: NextRequest) {
         // create the new node
         const created = await prisma.node.create({
             data: {
-                name: parsed.name,
-                question: '',
-                content: parsed.message,
+                name: "",
+                question: parsed.question,
+                content: "",
                 followups: [],
                 treeId: parent.treeId,
                 parentId: parent.id,

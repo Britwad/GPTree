@@ -1,71 +1,59 @@
 "use client";
 
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { useState, useCallback } from 'react';
-import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import { NodeModal } from '@/components/app/tree/NodeModal';
- 
-const initialNodes = [
-  { id: 'n1', position: { x: 0, y: 0 }, data: { label: 'Node 1' } },
-  { id: 'n2', position: { x: 0, y: 100 }, data: { label: 'Node 2' } },
-];
-const initialEdges = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
- 
+
 export default function App() {
-  const [nodes, setNodes] = useState(initialNodes);
-  const [edges, setEdges] = useState(initialEdges);
-  const [selectedNode, setSelectedNode] = useState<any>(null);
- 
-  const onNodesChange = useCallback(
-    (changes: any) => {
-      // Filter out position changes to prevent node movement
-      const nonPositionChanges = changes.filter((change: any) => change.type !== 'position');
-      return setNodes((nodesSnapshot) => applyNodeChanges(nonPositionChanges, nodesSnapshot));
-    },
-    [],
-  );
-  
-  const onEdgesChange = useCallback(
-    (changes: any) => setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
-    [],
-  );
-  
-  const onConnect = useCallback(
-    (params: any) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
-    [],
-  );
 
-  const onNodeClick = useCallback((event: React.MouseEvent, node: any) => {
-    setSelectedNode(node);
-  }, []);
+  const { data: session } = useSession();
+  const router = useRouter();
 
-  const onNodeHover = useCallback((event: React.MouseEvent | null, node: any | null) => {
-    if (node) {
-      // You can add hover effects here if needed
+  const [prompt, setPrompt] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onSubmit = async () => {
+    const res = await fetch("/api/trees", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: prompt, userId: session?.user?.id, prompt }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      setError((data && data.error) || "Unknown error");
+      setLoading(false);
+      return;
     }
-  }, []);
- 
+
+    // On success, navigate to the newly created tree page
+    router.push(`/tree/${data.tree.hash}`);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      onSubmit();
+    }
+  };
+
   return (
-    <div style={{ width: '100vw', height: '100vh' }}>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onNodeClick={onNodeClick}
-        onNodeMouseEnter={onNodeHover}
-        onNodeMouseLeave={(event) => onNodeHover(null, null)}
-        nodesDraggable={false}
-        fitView
-      />
-      <NodeModal 
-        isOpen={!!selectedNode}
-        onClose={() => {
-          setSelectedNode(null);
-        }}
-        node={selectedNode}
-      />
+    <div style={{ width: '100vw', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <div className="flex gap-2">
+        <input
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="What do you want to learn about?"
+          className="w-96 border border-gray-300 rounded-lg px-4 py-2 focus:ring-1 focus:ring-gray-300 focus:ring-2 focus:ring-green-500"
+        />
+        <button
+          onClick={onSubmit}
+          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+        >
+          Go
+        </button>
+      </div>
     </div>
   );
 }

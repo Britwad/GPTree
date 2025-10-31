@@ -5,29 +5,29 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { type CreateTree, CreateTreeSchema } from "@/lib/validation_schemas";
 
-const CreateTreeWithInitialSchema = CreateTreeSchema.extend({
-    initialMessage: z.string().min(1, "Initial message cannot be empty"),
-});
-
 // Create a new tree for a user
 export async function POST(request: NextRequest) {
     try {
         // Read and parse the request
         const body = await request.json();
-        const data = CreateTreeWithInitialSchema.parse(body) as CreateTree & {initialMessage: string };
-
-        const { initialMessage, ...treeData } = data;
+        const data = CreateTreeSchema.parse(body) as CreateTree;
+        
 
         // Create the tree
         const created = await prisma.$transaction(async (tx) => {
-            const newTree = await tx.tree.create({ data: treeData });
+            const newTree = await tx.tree.create({
+                data: {
+                    name: data.name,
+                    userId: data.userId,
+                }
+            });
             
             // Create the Root Node
             const rootNode = await tx.node.create({
                 data: {
                     name: "root",
-                    question: '',
-                    content: initialMessage,
+                    question: data.prompt,
+                    content: "",
                     followups: [],
                     treeId: newTree.id,
                     parentId: null,
@@ -37,10 +37,10 @@ export async function POST(request: NextRequest) {
             return { tree: newTree, node: rootNode };
         });
         
-        
+        console.log(created);
         // Return the new tree and node
-        const ret = JSON.parse(JSON.stringify(created));
-        return NextResponse.json(ret, { status: 201 });
+        const res = JSON.parse(JSON.stringify(created));
+        return NextResponse.json(res, { status: 201 });
     } catch (err) {
         console.error("Error creating tree:", err);
         // If the error was in parsing, it's the client's fault: return 400

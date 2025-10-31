@@ -1,6 +1,6 @@
 import prisma from "../../../lib/prisma";
 import { POST as MakeTree } from '../../../app/api/trees/route';
-import { GET as GetTree } from '@/app/api/trees/[id]/route';
+import { GET as GetTree } from '@/app/api/trees/[treeHash]/route';
 import { type CreateTree, TreeSchema } from '../../../lib/validation_schemas';
 import { NextRequest } from 'next/server';
 import { User } from "@/app/generated/prisma";

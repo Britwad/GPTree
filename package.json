@@ -7,7 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "test": "prisma generate --accelerate && jest --runInBand"
+    "test": "prisma generate --np-engine && jest --runInBand"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -26,7 +26,7 @@ jobs:
         DATABASE_URL: ${{ secrets.TEST_DB }}
 
     - name: Run tests
-      run: jest --runInBand
+      run: npx jest --runInBand
       env:
         DATABASE_URL: ${{ secrets.TEST_DB }}
   

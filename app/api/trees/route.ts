@@ -37,7 +37,6 @@ export async function POST(request: NextRequest) {
             return { tree: newTree, node: rootNode };
         });
         
-        console.log(created);
         // Return the new tree and node
         const res = JSON.parse(JSON.stringify(created));
         return NextResponse.json(res, { status: 201 });
@@ -77,7 +76,7 @@ export async function GET(request: NextRequest) {
             where: { userId },
             orderBy: { createdAt: 'desc' },
             include: {
-                node: {
+                nodes: {
                     orderBy: { id: 'asc' },
                     take: 1,
                 },

@@ -17,10 +17,10 @@ export async function GET(request: NextRequest, params: GetByUserId) {
             select: {
                 id: true,
                 name: true,
-                _count: {select: {node: true}}
+                _count: {select: {nodes: true}}
             }
         });
-
+        
         // Return the trees
         return NextResponse.json(trees, { status: 200 });
     } catch (err) {

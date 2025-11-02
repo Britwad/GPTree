@@ -1,7 +1,7 @@
-import prisma from "../../../lib/prisma";
-import { POST as MakeTree } from '../../../app/api/trees/route';
+import prisma from "@/lib/prisma";
+import { POST as MakeTree } from '@/app/api/trees/route';
 import { GET as GetTree } from '@/app/api/trees/[treeHash]/route';
-import { type CreateTree, TreeSchema } from '../../../lib/validation_schemas';
+import { type CreateTree, TreeSchema } from '@/lib/validation_schemas';
 import { NextRequest } from 'next/server';
 import { User } from "@/app/generated/prisma";
 
@@ -9,6 +9,7 @@ let first_user: User = {} as User;
 let first_tree: CreateTree = {} as CreateTree;
 beforeAll(async () => {
     // Clean test db before testing
+    await prisma.node.deleteMany();
     await prisma.tree.deleteMany();
     await prisma.user.deleteMany();
 
@@ -23,18 +24,20 @@ beforeAll(async () => {
     // Create a tree for that user that will be used in tests
     first_tree = {
         name: "test_tree_a",
-        userId: first_user.id
+        userId: first_user.id,
+        prompt: "Root prompt for tree A"
     };
 });
 
 afterAll(async () => {
         // Clean up
+        await prisma.node.deleteMany();
         await prisma.tree.deleteMany();
         await prisma.user.deleteMany();
 });
 
 describe('Testing tree endpoints', () => {
-    let first_tree_id: number = 0;
+    let first_tree_hash: string = '';
 
     test('Succesfully creates a new tree', async () => {
         // Make a fake tree request
@@ -50,22 +53,23 @@ describe('Testing tree endpoints', () => {
 
         // Check response
         expect(res.status).toEqual(201);
-        const created_tree = TreeSchema.parse(await res.json());
+        const parsed = await res.json();
+        const created_tree = TreeSchema.parse(parsed.tree);
         expect(created_tree.name).toEqual(body.name);
         expect(created_tree.userId).toEqual(body.userId);
 
-        // Save ID for later
-        first_tree_id = created_tree.id;
+        // Save hash for later
+        first_tree_hash = created_tree.hash;
     });
 
     test('Successfully gets an existing tree', async () => {
         // Make a fake tree request
-        const req = new NextRequest('http://fake_url/api/trees/' + first_tree_id, {
+        const req = new NextRequest('http://fake_url/api/trees/' + first_tree_hash, {
             method: 'GET',
         });
 
         // Now call the route directly
-        const res = await GetTree(req, { id: first_tree_id });
+        const res = await GetTree(req, { params: { treeHash: first_tree_hash }});
 
         // Check response
         expect(res.status).toEqual(200);

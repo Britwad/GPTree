@@ -33,17 +33,20 @@ beforeAll(async () => {
     // Create a tree for that user that will be used in tests
     first_tree = {
         name: "test_tree_a",
-        userId: first_user.id
+        userId: first_user.id,
+        prompt: "Root prompt for tree A"
     };
 
     second_tree = {
         name: "test_tree_b",
-        userId: first_user.id
+        userId: first_user.id,
+        prompt: "Root prompt for tree B"
     }
 });
 
 afterAll(async () => {
         // Clean up
+        await prisma.node.deleteMany();
         await prisma.tree.deleteMany();
         await prisma.user.deleteMany();
 });
@@ -81,7 +84,7 @@ describe('Testing user/tree endpoints', () => {
         expect(res.status).toEqual(200);
         const returned_trees = TreeListSchema.parse(await res.json());
         expect(returned_trees.length).toEqual(2);
-        expect(returned_trees[0]._count.node).toEqual(0);
-        expect(returned_trees[1]._count.node).toEqual(0);
+        expect(returned_trees[0]._count.nodes).toEqual(1);
+        expect(returned_trees[1]._count.nodes).toEqual(1);
     });
 });

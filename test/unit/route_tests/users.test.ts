@@ -9,12 +9,16 @@ beforeAll(async () => {
     // Clean test db before testing
     // (We need to clear all tables not just users,
     //  but we can add more once we test more things)
-    await prisma.user.deleteMany()
+    await prisma.node.deleteMany();
+    await prisma.tree.deleteMany();
+    await prisma.user.deleteMany();
 });
 
 afterAll(async () => {
-        // Clean up
-        await prisma.user.deleteMany();
+    // Clean up
+    await prisma.node.deleteMany();
+    await prisma.tree.deleteMany();
+    await prisma.user.deleteMany();
 });
 
 // We can make a user that will stay in the db for multiple tests

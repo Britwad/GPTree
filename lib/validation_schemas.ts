@@ -4,7 +4,7 @@
 
 import { z } from 'zod';
 
-import { type Node, type Tree, type Flashcard } from '@/app/generated/prisma/client';
+import { type Node, type Tree as Prisma_Tree, type Flashcard } from '@/app/generated/prisma/client';
 
 
 // Schema for creating a new user
@@ -52,11 +52,22 @@ export const CreateNodeSchema = z.object({
 });
 export type CreateNode = z.infer<typeof CreateNodeSchema>;
 
+// Schema for what we expect from prisma when getting a tree
+export const TreeSchema = z.object({
+    name: z.string().min(1),
+    id: z.number().min(1),
+    createdAt: z.coerce.date(),
+    userId: z.string().min(1),
+    hash: z.string().min(1),
+    updatedAt: z.coerce.date(),
+});
+export type Tree = z.infer<typeof TreeSchema>;
+
 // Schema for a list of trees
 export const TreeListSchema = z.array(z.object({
     id: z.number().min(1),
     name: z.string().min(1).max(100).optional().nullable(),
-    _count: z.object({node: z.number().min(0)})
+    _count: z.object({nodes: z.number().min(0)})
 }));
 export type TreeList = z.infer<typeof TreeListSchema>;
 
@@ -65,9 +76,9 @@ export const GetTreeByHashSchema = z.object({
     hash: z.string().min(1)
 });
 export type GetTreeByHash = z.infer<typeof GetTreeByHashSchema>;
-export type GetTreeByHashResponse = Tree & { nodes: GetNodeByHashResponse[] };
+export type GetTreeByHashResponse = Prisma_Tree & { nodes: GetNodeByHashResponse[] };
 
-// Schema for getting a tree by its ID
+// Schema for getting a node by its ID
 export const GetNodeByHashSchema = z.object({
     hash: z.string().min(1)
 });

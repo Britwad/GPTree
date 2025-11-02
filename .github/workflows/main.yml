@@ -21,7 +21,7 @@ jobs:
       run: npm ci
 
     - name: Generate Prisma Client (No Engine)
-      run: npx prisma generate --no-engine
+      run: npx prisma generate --accelerate
       env:
         DATABASE_URL: ${{ secrets.TEST_DB }}
 

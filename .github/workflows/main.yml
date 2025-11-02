@@ -20,8 +20,8 @@ jobs:
     - name: Install dependencies (packages)
       run: npm ci
 
-    - name: Generate Prisma Client
-      run: npx prisma generate
+    - name: Generate Prisma Client (Accelerate)
+      run: npx prisma generate --accelerate
       env:
         DATABASE_URL: ${{ secrets.TEST_DB }}
 

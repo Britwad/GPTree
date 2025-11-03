@@ -5,6 +5,6 @@
 // get loaded from .env.test
 import dotenv from "dotenv";
 
-if (process.env.CI !== "true") {  // We don't want this for GitHub Actions workflows
+if (process.env.CI !== "true") {  // We don't want this in GitHub Actions workflows
   dotenv.config({ path: ".env.test" });
 }

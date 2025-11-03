@@ -3,7 +3,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { type CreateTree, CreateTreeSchema } from "@/lib/validation_schemas";
+import { 
+    type CreateTree, 
+    CreateTreeSchema,
+    GetTreesSchema,
+    type PaginatedTreesResponse 
+} from "@/lib/validation_schemas";
 
 // Create a new tree for a user
 export async function POST(request: NextRequest) {
@@ -64,28 +69,56 @@ export async function GET(request: NextRequest) {
     try {
         const url = new URL(request.url);
         const userId = url.searchParams.get('userId');
+        const limitParam = url.searchParams.get('limit');
+        const offsetParam = url.searchParams.get('offset');
 
-        if (!userId) {
+        // Validate using schema
+        const params = GetTreesSchema.parse({
+            userId: userId || undefined,
+            limit: limitParam ? parseInt(limitParam, 10) : undefined,
+            offset: offsetParam ? parseInt(offsetParam, 10) : undefined,
+        });
+
+        // Use defaults from schema
+        const limit = params.limit ?? 10;
+        const offset = params.offset ?? 0;
+
+        // Get total count for pagination metadata
+        const totalCount = await prisma.tree.count({
+            where: { userId: params.userId }
+        });
+
+        // Fetch paginated trees
+        const trees = await prisma.tree.findMany({
+            where: { userId: params.userId },
+            orderBy: { createdAt: 'desc' },
+            take: limit,
+            skip: offset,
+        });
+
+        // Return trees with pagination metadata
+        const response: PaginatedTreesResponse = {
+            trees,
+            pagination: {
+                total: totalCount,
+                limit,
+                offset,
+                hasMore: offset + limit < totalCount,
+            }
+        };
+
+        return NextResponse.json(response, { status: 200 });
+    } catch (err) {
+        console.error("Error fetching trees:", err);
+        
+        // If the error was in parsing, it's the client's fault: return 400
+        if (err instanceof z.ZodError) {
             return NextResponse.json(
-                { error: 'Missing userId parameter' },
+                { errors: err.flatten() },
                 { status: 400 }
             );
         }
 
-        const trees = await prisma.tree.findMany({
-            where: { userId },
-            orderBy: { createdAt: 'desc' },
-            include: {
-                nodes: {
-                    orderBy: { id: 'asc' },
-                    take: 1,
-                },
-             },
-        });
-
-        return NextResponse.json(trees, { status: 200 });
-    } catch (err) {
-        console.error("Error fetching trees:", err);
         return NextResponse.json(
             { error: 'Internal Server Error' },
             { status: 500 }

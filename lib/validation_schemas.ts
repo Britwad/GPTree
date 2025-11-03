@@ -6,7 +6,6 @@ import { z } from 'zod';
 
 import { type Node, type Tree as Prisma_Tree, type Flashcard } from '@/app/generated/prisma/client';
 
-
 // Schema for creating a new user
 export const CreateUserSchema = z.object({
     name: z.string().min(1).max(30),
@@ -77,6 +76,37 @@ export const GetTreeByHashSchema = z.object({
 });
 export type GetTreeByHash = z.infer<typeof GetTreeByHashSchema>;
 export type GetTreeByHashResponse = Prisma_Tree & { nodes: GetNodeByHashResponse[] };
+
+// Schema for pagination parameters
+export const PaginationParamsSchema = z.object({
+    limit: z.number().int().min(1).max(100).optional().default(10),
+    offset: z.number().int().min(0).optional().default(0),
+});
+export type PaginationParams = z.infer<typeof PaginationParamsSchema>;
+
+// Schema for pagination metadata
+export const PaginationMetadataSchema = z.object({
+    total: z.number().int().min(0),
+    limit: z.number().int().min(1),
+    offset: z.number().int().min(0),
+    hasMore: z.boolean(),
+});
+export type PaginationMetadata = z.infer<typeof PaginationMetadataSchema>;
+
+// Schema for paginated trees response
+export const PaginatedTreesResponseSchema = z.object({
+    trees: z.array(TreeSchema),
+    pagination: PaginationMetadataSchema,
+});
+export type PaginatedTreesResponse = z.infer<typeof PaginatedTreesResponseSchema>;
+
+// Schema for getting trees with optional pagination
+export const GetTreesSchema = z.object({
+    userId: z.string().min(1),
+    limit: z.number().int().min(1).max(100).optional(),
+    offset: z.number().int().min(0).optional(),
+});
+export type GetTrees = z.infer<typeof GetTreesSchema>;
 
 // Schema for getting a node by its ID
 export const GetNodeByHashSchema = z.object({

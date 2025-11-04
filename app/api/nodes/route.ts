@@ -42,6 +42,8 @@ export async function POST(request: NextRequest) {
             },
         });
 
+        console.log("Created node:", created);
+
         return NextResponse.json(created, { status: 201 });
     } catch (err) {
         console.error("POST /api/node error", err);

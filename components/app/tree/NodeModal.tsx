@@ -21,13 +21,12 @@ const customStyles = {
 };
 
 // Set the app element for accessibility - will be set when component mounts
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { CreateNode } from '@/lib/validation_schemas';
-import { on } from 'events';
 
-const NodeModal = ({ isOpen, node, onClose, onNewNode }: {
-  isOpen: boolean;
+const NodeModal = ({ isOpen=true, node, onClose, onNewNode }: {
+  isOpen?: boolean;
   node: Node
   onClose: () => void;
   onNewNode: (newNode: Node) => void;
@@ -36,11 +35,6 @@ const NodeModal = ({ isOpen, node, onClose, onNewNode }: {
 
   const [prompt, setPrompt] = useState<string>("");
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      Modal.setAppElement('body');
-    }
-  }, []);
   if (!node) return null;
 
   const onSubmit = async () => {
@@ -79,6 +73,7 @@ const NodeModal = ({ isOpen, node, onClose, onNewNode }: {
       onRequestClose={onClose}
       style={customStyles}
       contentLabel={`Node: ${node.question}`}
+      appElement={typeof window !== 'undefined' ? document.body : undefined}
     >
       <div>
         <h2 className="text-xl font-bold mb-4">{node.question}</h2>

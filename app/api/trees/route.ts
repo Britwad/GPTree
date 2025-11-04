@@ -9,6 +9,7 @@ import {
     GetTreesSchema,
     type PaginatedTreesResponse 
 } from "@/lib/validation_schemas";
+// import { getGroqResponse } from "@/backend_helpers/groq_helpers";
 
 // Create a new tree for a user
 export async function POST(request: NextRequest) {

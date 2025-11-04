@@ -1,7 +1,9 @@
+// We use this route to create a new node under a parent node
+
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { type CreateNode, CreateNodeSchema } from "@/lib/validation_schemas";
+import { CreateNodeSchema } from "@/lib/validation_schemas";
 
 export async function POST(request: NextRequest) {
     try {

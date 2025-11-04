@@ -117,3 +117,8 @@ export type GetNodeByHashResponse = Node & {
     children: Node[],
     flashcards: Flashcard[]
 };
+
+export const GetFlashcardByNodeIDSchema = z.object({
+    nodeId: z.number().min(1)
+});
+export type GetFlashcardByNodeID = z.infer<typeof GetFlashcardByNodeIDSchema>;

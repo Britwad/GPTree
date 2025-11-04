@@ -1,8 +1,8 @@
-import prisma from "../../../lib/prisma";
-import { POST as MakeUser } from '../../../app/api/users/route';
-import { GET as GetUser} from '../../../app/api/users/[id]/route';
-import { GET as GetUserTrees } from '../../../app/api/users/[id]/trees/route';
-import { type CreateUser, type User, UserSchema } from '../../../lib/validation_schemas';
+import prisma from "@/lib/prisma";
+import { POST as MakeUser } from '@/app/api/users/route';
+import { GET as GetUser} from '@/app/api/users/[id]/route';
+import { GET as GetUserTrees } from '@/app/api/users/[id]/trees/route';
+import { type CreateUser, type User, UserSchema } from '@/lib/validation_schemas';
 import { NextRequest } from 'next/server';
 
 beforeAll(async () => {

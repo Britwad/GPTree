@@ -1,7 +1,4 @@
 // We use this route to get a tree by tree ID
-// (note that we're using GetByUserID for now because
-//  it works with our schema for now, but once we get a
-//  few trees in our db to see what the ID's look like)
 
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
@@ -14,8 +11,8 @@ export async function GET(
     context: { params: { treeHash: string } }
 ) {
     try {
-        const params = await Promise.resolve(context.params);
         // Read and parse the request
+        const params = await Promise.resolve(context.params);
         const data: GetTreeByHash = GetTreeByHashSchema.parse({ hash: params.treeHash });
 
         // Find the tree with all its nodes and their relationships
@@ -35,8 +32,8 @@ export async function GET(
         return NextResponse.json(newTree, { status: 200 });
     } catch (err) {
         console.error("Error getting tree:", err);
-        // If the error was in parsing, it's the client's fault: return 400
 
+        // If the error was in parsing, it's the client's fault: return 400
         if (err instanceof z.ZodError) {
             return NextResponse.json(
                 { errors: z.flattenError(err) },

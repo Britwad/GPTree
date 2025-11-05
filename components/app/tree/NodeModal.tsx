@@ -111,6 +111,7 @@ const NodeModal = ({
       contentLabel={`Node: ${node.question}`}
       appElement={typeof window !== "undefined" ? document.body : undefined}
     >
+   
       <div className="flex flex-col gap-4">
         {/* Parent node display */}
         <div>

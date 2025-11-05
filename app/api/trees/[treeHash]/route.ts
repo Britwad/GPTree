@@ -16,20 +16,53 @@ export async function GET(
         const data: GetTreeByHash = GetTreeByHashSchema.parse({ hash: params.treeHash });
 
         // Find the tree with all its nodes and their relationships
-        const newTree = await prisma.tree.findUnique({
+        const tree = await prisma.tree.findUnique({
             where: { hash: data.hash },
             include: {
                 nodes: {
                     include: {
-                        children: true,
                         flashcards: true
                     }
                 }
             }
         });
 
-        // Return the new tree
-        return NextResponse.json(newTree, { status: 200 });
+        if (!tree) {
+            return NextResponse.json(
+                { error: 'Tree not found' },
+                { status: 404 }
+            );
+        }
+
+        // Build nested children structure manually
+        const nodeMap = new Map();
+        let rootNode: any = null;
+
+        // First pass: create a map of all nodes
+        tree.nodes.forEach(node => {
+            nodeMap.set(node.id, { ...node, children: [] });
+        });
+
+        // Second pass: build parent-child relationships
+        tree.nodes.forEach(node => {
+            const nodeWithChildren = nodeMap.get(node.id);
+            if (node.parentId === null) {
+                rootNode = nodeWithChildren;
+            } else {
+                const parent = nodeMap.get(node.parentId);
+                if (parent) {
+                    parent.children.push(nodeWithChildren);
+                }
+            }
+        });
+
+        // Return tree with single root node containing nested children
+        const treeWithNestedNodes = {
+            ...tree,
+            nodes: rootNode ? [rootNode] : []
+        };
+
+        return NextResponse.json(treeWithNestedNodes, { status: 200 });
     } catch (err) {
         console.error("Error getting tree:", err);
 

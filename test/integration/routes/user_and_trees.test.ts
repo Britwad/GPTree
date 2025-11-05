@@ -34,13 +34,13 @@ beforeAll(async () => {
     first_tree = {
         name: "test_tree_a",
         userId: first_user.id,
-        prompt: "Root prompt for tree A"
+        prompt: "Root prompt for tree A, this is a test prompt, so let's make this tree about how to tie shoes"
     };
 
     second_tree = {
         name: "test_tree_b",
         userId: first_user.id,
-        prompt: "Root prompt for tree B"
+        prompt: "Root prompt for tree B, this is a test prompt, so let's make this tree about how to bake a cake"
     }
 });
 
@@ -51,6 +51,7 @@ afterAll(async () => {
         await prisma.user.deleteMany();
 });
 
+// This test should be restructured to use fetch later, but for now it's fine
 describe('Testing user/tree endpoints', () => {
     test('Succesfully gets trees for a user', async () => {
         // Make fake requests
@@ -86,5 +87,5 @@ describe('Testing user/tree endpoints', () => {
         expect(returned_trees.length).toEqual(2);
         expect(returned_trees[0]._count.nodes).toEqual(1);
         expect(returned_trees[1]._count.nodes).toEqual(1);
-    });
+    }, 25000); // Adding time for Groq response
 });

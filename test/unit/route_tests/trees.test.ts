@@ -25,7 +25,7 @@ beforeAll(async () => {
     first_tree = {
         name: "test_tree_a",
         userId: first_user.id,
-        prompt: "Root prompt for tree A"
+        prompt: "This is a test prompt for creating a tree, so make this tree about how to grow trees."
     };
 });
 
@@ -60,7 +60,7 @@ describe('Testing tree endpoints', () => {
 
         // Save hash for later
         first_tree_hash = created_tree.hash;
-    });
+    }, 20000); // Adding time for Groq response
 
     test('Successfully gets an existing tree', async () => {
         // Make a fake tree request

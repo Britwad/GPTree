@@ -56,7 +56,28 @@ export const groqTeacherPrompt = 'You will be a knowledgeable and patient teache
   + ' You will do so by helping students build trees for large topics, which contain nodes with information about subtopics.'
   + ' Each node should have 500 words or less, and add a note if and only if that word count is insufficient to cover the topic.';
 
+
+export const groqRootResponseStructure = {
+    type: 'json_schema',
+    json_schema: {
+        name: 'root_node_text',
+        schema: {
+            type: 'object',
+            properties: {
+                overview: { type: 'string' },
+                subtopics: { 
+                    type: 'array',
+                    items: { type: 'string'}
+                }
+            }
+        },
+        required: ['overview', 'subtopics'],
+        additional_properties: false,
+    }
+};
+
 export const groqRootPrompt = 'For the provided topic, Focus on identifying the **main branches (subtopics)** that someone '
   + 'would need to understand to gain a complete, high-level understanding of the subject. Because this is the root node, '
   + 'avoid going into any level of detail on subtopics; instead, provide a 1-2 sentence description of the overall topic, and '
-  + 'list the subtopics as bullet points.';
+  + 'list the subtopics as bullet points. Ensure that your response is in **strict JSON** format matching the provided JSON structure: '
+  + JSON.stringify(groqRootResponseStructure.json_schema.schema) + '.';

@@ -54,3 +54,12 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ReactFlow background override */
+.react-flow {
+  background: white !important;
+}
+
+.react-flow__background {
+  background: white !important;
+}

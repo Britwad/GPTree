@@ -9,10 +9,12 @@ const customStyles = {
     bottom: 'auto',
     marginRight: '-50%',
     transform: 'translate(-50%, -50%)',
-    padding: '20px',
+    padding: '0',
     borderRadius: '8px',
     maxWidth: '500px',
-    width: '90%'
+    width: '90%',
+    backgroundColor: 'white',
+    border: 'none'
   },
   overlay: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -80,11 +82,11 @@ const NodeModal = ({ isOpen, node, onClose, onNewNode }: {
       style={customStyles}
       contentLabel={`Node: ${node.question}`}
     >
-      <div>
-        <h2 className="text-xl font-bold mb-4">{node.question}</h2>
+      <div className="bg-white border-2 border-black rounded-lg p-6">
+        <h2 className="text-xl font-bold mb-4 text-gray-900">{node.question}</h2>
         <div className="mb-4">
-          <p>Node ID: {node.id}</p>
-          <p>Question: {node.question}</p>
+          <p className="text-gray-900">Node ID: {node.id}</p>
+          <p className="text-gray-900">Question: {node.question}</p>
           {/* Add more node-specific content here */}
         </div>
         <input
@@ -92,7 +94,7 @@ const NodeModal = ({ isOpen, node, onClose, onNewNode }: {
           onChange={(e) => setPrompt(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="What do you want to learn about?"
-          className="w-96 border border-gray-300 rounded-lg px-4 py-2 focus:ring-1 focus:ring-gray-300 focus:ring-2 focus:ring-green-500"
+          className="w-96 border-2 border-gray-400 rounded-lg px-4 py-2 bg-white text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none"
         />
         <button
           onClick={onSubmit}

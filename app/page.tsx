@@ -15,50 +15,49 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-white to-gray-100 px-4">
-        <h1 className="text-5xl font-bold mb-8 text-gray-800 tracking-tight">
+        <h1 className="text-5xl font-bold mb-4 text-gray-800 tracking-tight">
           GPTree
         </h1>
+        <p className="text-xl font-medium text-gray-600 mb-8 text-center max-w-md">
+          Learn anything, one branch at a time.
+        </p>
 
     {session ? (
-        <div className="flex flex-col gap-4">
-        <button 
+        <div className="flex flex-col gap-4 items-center">
+          <button 
             onClick={handleClick}
             className="px-6 py-3 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
           >
-          New Tree
-        </button>
+            New Tree
+          </button>
+        </div>
+    ) : (
+      <div className="flex flex-col gap-4 w-full max-w-sm">
+        <p className="text-center text-gray-500 mb-2">
+          Sign in to get started
+        </p>
         <button
-          onClick={() => signOut()}
-          className="px-6 py-3 bg-lime-600 text-white rounded-lg hover:bg-lime-700 transition"
+          onClick={() => signIn("google")}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
         >
-          Sign Out
+          Continue with Google
         </button>
-      </div >
-    ) : (<div className= "flex flex-col gap-4 w-full max-w-sm">
-      <button
-        onClick={() => signIn("google")}
-        className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
-      >
-        Continue with Google
-      </button>
 
-      <div className="flex gap-4">
-        
-
-      <input 
-        value={userEmail} 
-        onChange={(e) => setUserEmail(e.target.value)}
-        placeholder="Enter your email"
-        className = "flex-1 border-grey-300 rounded-lg px-4 py-2 focus: ring-1 focus:ring-gray-300 focus:ring-2 focus:ring-green-500"
-        />
-      <button
-        onClick={() => signIn("email", { email: userEmail})}
-        className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
-      >
-        Continue
-      </button>
-    </div>
-  </div>
+        <div className="flex gap-4">
+          <input 
+            value={userEmail} 
+            onChange={(e) => setUserEmail(e.target.value)}
+            placeholder="Enter your email"
+            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-900 focus:ring-1 focus:ring-gray-300 focus:ring-2 focus:ring-green-500 focus:outline-none"
+          />
+          <button
+            onClick={() => signIn("email", { email: userEmail})}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
+          >
+            Continue
+          </button>
+        </div>
+      </div>
     )}
   </div>
   );

@@ -143,7 +143,7 @@ export default function TreeLayout({
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-hidden">
+            <main className="flex-1 overflow-hidden bg-white">
                 {children}
             </main>
         </div>

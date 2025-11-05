@@ -48,14 +48,14 @@ export default function App() {
   }
 
   return (
-    <div className="flex items-center justify-center h-screen">
+    <div className="flex items-center justify-center h-screen bg-white">
       <div className="flex gap-2">
         <input
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="What do you want to learn about?"
-          className="w-96 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500"
+          className="w-96 border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-900 focus:ring-2 focus:ring-green-500 focus:outline-none"
         />
         <button
           onClick={onSubmit}

@@ -140,7 +140,7 @@ export default function App() {
   }
  
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full bg-white">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -149,6 +149,7 @@ export default function App() {
         onNodeMouseLeave={(event) => onNodeHover(null, null)}
         nodesDraggable={false}
         fitView
+        style={{ background: 'white' }}
       />
       <NodeModal 
         isOpen={!!selectedNode}

@@ -8,7 +8,6 @@ import {
     CreateTreeSchema,
     GetTreesSchema,
     type PaginatedTreesResponse, 
-    StructuredNodeSchema
 } from "@/lib/validation_schemas";
 import {
     getGroqResponse,
@@ -25,6 +24,8 @@ export async function POST(request: NextRequest) {
         const data = CreateTreeSchema.parse(body) as CreateTree;
 
         // Generate content for the root node based on the prompt
+        // We're streaming to the backend right now but eventually
+        // we will stream to the client
         const stream = await getGroqResponse([
             { role: "system", content: groqTeacherPrompt },
             { role: "user", content: `Create a very broad overview for a topic tree on: ${data.prompt}. `

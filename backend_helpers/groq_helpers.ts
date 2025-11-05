@@ -57,8 +57,6 @@ export const groqTeacherPrompt = 'You will be a knowledgeable and patient teache
   + ' You will do so by helping students build trees for large topics, which contain nodes with information about subtopics.'
   + ' Each node should have 500 words or less, and add a note if and only if that word count is insufficient to cover the topic.';
 
-
-// Leaving this here for now, but we might not need it
 export const groqRootResponseStructure = {
     type: 'json_schema',
     json_schema: {
@@ -67,9 +65,28 @@ export const groqRootResponseStructure = {
             type: 'object',
             properties: {
                 name: { type: 'string' },
-                content: { type: {overview: { type: 'string' }, 
-                                 subtopics: { type: 'array', items: { type: 'string' } } } },
+                content: { type: 'string' },
                 followups: { type: 'array', items: { type: 'string' } }
+            }
+        },
+        required: ['name', 'content', 'followups'],
+        additional_properties: false,
+    }
+};
+
+// At the moment, we have really weird parsing stuff going on with our frontend,
+// so for now, this schema will help us 'bridge the gap' between what the frontend
+// thinks it's getting and what we actually want to send it, without being too hard to
+// remove or change later (but it does need to change though)
+export const groqRootContentSchema = {
+    type: 'json_schema',
+    json_schema: {
+        name: 'content_structure',
+        schema: {
+            type: 'object',
+            properties: {
+                overview: { type: 'string' },
+                subtopics: { type: 'array', items: { type: 'string' } }
             }
         },
         required: ['overview', 'subtopics'],
@@ -77,10 +94,14 @@ export const groqRootResponseStructure = {
     }
 };
 
+
 export const groqRootPrompt = 'For the provided topic, Focus on identifying the **main branches (subtopics)** that someone '
   + 'would need to understand to gain a complete, high-level understanding of the subject. Because this is the root node, '
   + 'avoid going into any level of detail on subtopics; instead, provide a 1-2 sentence description of the overall topic, and '
-  + 'list the subtopics as bullet points. After this, generate 3 followup questions that a user is likely to ask that would explore these subtopics, '
+  + 'list the subtopics as bullet points. The overview and subtopics should be formatted as a **JSON string** (i.e. what you would get '
+  + 'if you were to stringify the following object) according to the following schema: '
+  + JSON.stringify(groqRootContentSchema.json_schema.schema) + '. This string will be put into another structure later so do not include any extra text.'
+  + 'After this, generate 3 followup questions that a user is likely to ask that would explore these subtopics, '
   + 'and make each question 50 words or less. Lastly, generate a name for this root node that relates to the overall topic in less than 10 words, '
   + 'Ensure that your response is in **strict JSON** format matching the provided JSON structure: '
   + JSON.stringify(groqRootResponseStructure.json_schema.schema) + '.';
@@ -96,7 +117,7 @@ export function parseStructuredNode(content: string) {
     try {
         parsed = JSON.parse(jsonStr);
     } catch (e) {
-        throw new Error("Failed to parse node content as JSON");
+        throw new Error("Failed to parse node content as JSON: " + (e instanceof Error ? e.message : String(e)));
     }
     console.log("Parsed node content:", parsed);
     const r = StructuredNodeSchema.safeParse(parsed);

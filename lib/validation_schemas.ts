@@ -131,3 +131,11 @@ export type GetNodes = z.infer<typeof GetNodesSchema>;
 export type GetNodesResponse = {
     nodes: Node[];
 }
+
+// Schema for the structured node returned by Groq
+export const StructuredNodeSchema = z.object({
+    name: z.string().min(1),
+    content: z.string().min(1),
+    followups: z.array(z.string()).max(10),
+});
+export type StructuredNode = z.infer<typeof StructuredNodeSchema>;

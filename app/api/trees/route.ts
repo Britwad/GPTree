@@ -9,7 +9,11 @@ import {
     GetTreesSchema,
     type PaginatedTreesResponse 
 } from "@/lib/validation_schemas";
-// import { getGroqResponse } from "@/backend_helpers/groq_helpers";
+import {
+    getGroqResponse,
+    groqTeacherPrompt,
+    groqRootPrompt
+ } from "@/backend_helpers/groq_helpers";
 
 // Create a new tree for a user
 export async function POST(request: NextRequest) {
@@ -17,7 +21,21 @@ export async function POST(request: NextRequest) {
         // Read and parse the request
         const body = await request.json();
         const data = CreateTreeSchema.parse(body) as CreateTree;
-        
+
+        // Generate content for the root node based on the prompt
+        const stream = await getGroqResponse([
+            { role: "system", content: groqTeacherPrompt },
+            { role: "user", content: `Create a very broad overview for a topic tree on: ${data.prompt}. `
+                    + groqRootPrompt }
+        ]);
+        let content = "";
+        const reader = stream.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            content += decoder.decode(value);
+        }
 
         // Create the tree
         const created = await prisma.$transaction(async (tx) => {
@@ -27,13 +45,13 @@ export async function POST(request: NextRequest) {
                     userId: data.userId,
                 }
             });
-            
+
             // Create the Root Node
             const rootNode = await tx.node.create({
                 data: {
                     name: "root",
                     question: data.prompt,
-                    content: "",
+                    content,
                     followups: [],
                     treeId: newTree.id,
                     parentId: null,

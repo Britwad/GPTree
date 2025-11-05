@@ -50,3 +50,13 @@ export async function getGroqResponse(messages: Message[]) {
     throw err;
   }
 }
+
+// Some behavioral promts for Groq will go here
+export const groqTeacherPrompt = 'You will be a knowledgeable and patient teacher helping a student understand concepts.'
+  + ' You will do so by helping students build trees for large topics, which contain nodes with information about subtopics.'
+  + ' Each node should have 500 words or less, and add a note if and only if that word count is insufficient to cover the topic.';
+
+export const groqRootPrompt = 'For the provided topic, Focus on identifying the **main branches (subtopics)** that someone '
+  + 'would need to understand to gain a complete, high-level understanding of the subject. Because this is the root node, '
+  + 'avoid going into any level of detail on subtopics; instead, provide a 1-2 sentence description of the overall topic, and '
+  + 'list the subtopics as bullet points.';

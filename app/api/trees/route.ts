@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
                     content: "",
                     followups: [],
                     treeId: newTree.id,
+                    userId: data.userId,
                     parentId: null,
                 },
             });

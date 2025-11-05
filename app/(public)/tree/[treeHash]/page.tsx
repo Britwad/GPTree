@@ -6,8 +6,8 @@ import '@xyflow/react/dist/style.css';
 import NodeModal from '@/components/app/tree/NodeModal';
 import TreeNode from '@/components/app/tree/TreeNode';
 import { useParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { type Node, type Tree } from '@/app/generated/prisma/client';
-import { GetTreeByHashResponse, GetNodeByHashResponse } from '@/lib/validation_schemas';
 
 interface FlowNode {
   id: string;
@@ -21,81 +21,105 @@ interface FlowEdge {
   target: string;
 }
 
-const horizontalSpacing = 200;
+const horizontalSpacing = 100;
 const verticalSpacing = 100;
 
-const generateNodesAndEdges = (treeData: GetTreeByHashResponse) => {
+const generateNodesAndEdges = (nodesList: Node[]) => {
   const flowNodes: FlowNode[] = [];
   const flowEdges: FlowEdge[] = [];
   
-  // First pass: count nodes per level
-  const nodesPerLevel: Map<number, number> = new Map();
-  const countNodesPerLevel = (node: GetNodeByHashResponse, level: number) => {
-    nodesPerLevel.set(level, (nodesPerLevel.get(level) || 0) + 1);
-    if (node.children && node.children.length > 0) {
-      node.children.forEach((child) => {
-        countNodesPerLevel(child as GetNodeByHashResponse, level + 1);
-      });
+  if (!nodesList || nodesList.length === 0) {
+    return { nodes: flowNodes, edges: flowEdges };
+  }
+
+  // Find root node (first node or node without parentId)
+  const rootNode = nodesList[0].parentId === null ? nodesList[0] : nodesList.find(n => n.parentId === null);
+  
+  if (!rootNode) {
+    console.error('No root node found');
+    return { nodes: flowNodes, edges: flowEdges };
+  }
+
+  // Build children map for quick lookup
+  const childrenMap = new Map<number, Node[]>();
+  nodesList.forEach(node => {
+    if (node.parentId !== null) {
+      if (!childrenMap.has(node.parentId)) {
+        childrenMap.set(node.parentId, []);
+      }
+      childrenMap.get(node.parentId)!.push(node);
     }
-  };
+  });
 
-  // Track position index per level for horizontal placement
-  const levelIndexes: Map<number, number> = new Map();
-
-  // Helper function to process node and its children recursively
-  const processNode = (node: GetNodeByHashResponse, level: number) => {
-    // Get current index for this level
-    const currentIndex = levelIndexes.get(level) || 0;
-    levelIndexes.set(level, currentIndex + 1);
-
-    // Get total nodes at this level
-    const totalNodesAtLevel = nodesPerLevel.get(level) || 1;
-
-    // Calculate position - distribute nodes evenly across the level
-    const x = (currentIndex - (totalNodesAtLevel - 1) / 2) * horizontalSpacing;
-    const y = -level * verticalSpacing;
-
-    // Add node
-    flowNodes.push({
-      id: node.id.toString(),
-      position: { x, y },
-      data: node
+  // Sort children by createdAt to maintain consistent left-to-right order
+  childrenMap.forEach(children => {
+    children.sort((a, b) => {
+      const aTime = new Date(a.createdAt).getTime();
+      const bTime = new Date(b.createdAt).getTime();
+      return aTime - bTime;
     });
+  });
 
-    // Process children and add edges
-    if (node.children && node.children.length > 0) {
-      node.children.forEach((child) => {
+  // Track horizontal position counter as we traverse
+  let currentX = 0;
+
+  // Recursive depth-first traversal (left to right)
+  const traverse = (node: Node, level: number): number => {
+    const children = childrenMap.get(node.id) || [];
+    
+    if (children.length === 0) {
+      // Leaf node: assign current position and increment
+      const x = currentX * horizontalSpacing;
+      const y = -level * verticalSpacing;
+      
+      flowNodes.push({
+        id: node.id.toString(),
+        position: { x, y },
+        data: node
+      });
+      
+      currentX++;
+      return x;
+    } else {
+      // Internal node: traverse children first, then position this node at their center
+      const childPositions: number[] = [];
+      
+      children.forEach(child => {
         // Add edge from this node to child
         flowEdges.push({
           id: `${node.id}-${child.id}`,
           source: node.id.toString(),
           target: child.id.toString(),
         });
-
-        // Process child node recursively
-        processNode(child as GetNodeByHashResponse, level + 1);
+        
+        // Traverse child and get its x position
+        const childX = traverse(child, level + 1);
+        childPositions.push(childX);
       });
+      
+      // Position this node at the center of its children
+      const x = (childPositions[0] + childPositions[childPositions.length - 1]) / 2;
+      const y = -level * verticalSpacing;
+      
+      flowNodes.push({
+        id: node.id.toString(),
+        position: { x, y },
+        data: node
+      });
+      
+      return x;
     }
   };
 
-  // Process root nodes (API now returns array of root nodes with nested children)
-  if (treeData.nodes && treeData.nodes.length > 0) {
-    // First count all nodes per level for all root nodes
-    treeData.nodes.forEach(rootNode => {
-      countNodesPerLevel(rootNode, 0);
-    });
-    
-    // Then position all root nodes and their descendants
-    treeData.nodes.forEach(rootNode => {
-      processNode(rootNode, 0);
-    });
-  }
+  // Start traversal from root
+  traverse(rootNode, 0);
 
   return { nodes: flowNodes, edges: flowEdges };
 };
 
 export default function App() {
   const params = useParams();
+  const { data: session } = useSession();
   const [nodes, setNodes] = useState<any[]>([]);
   const [edges, setEdges] = useState<any[]>([]);
   const [selectedNode, setSelectedNode] = useState<any>(null);
@@ -107,13 +131,18 @@ export default function App() {
 
   useEffect(() => {
     const fetchTree = async () => {
+      if (!session?.user?.id) {
+        setLoading(false);
+        return;
+      }
+      
       try {
-        const res = await fetch(`/api/trees/${params.treeHash}`);
+        const res = await fetch(`/api/nodes?treeHash=${params.treeHash}&userId=${session.user.id}`);
         if (!res.ok) {
           throw new Error('Failed to fetch tree data');
         }
-        const treeData: GetTreeByHashResponse = await res.json();
-        const { nodes: flowNodes, edges: flowEdges } = generateNodesAndEdges(treeData);
+        const data = await res.json();
+        const { nodes: flowNodes, edges: flowEdges } = generateNodesAndEdges(data.nodes);
         setNodes(flowNodes);
         setEdges(flowEdges);
       } catch (err) {
@@ -124,7 +153,7 @@ export default function App() {
     };
 
     fetchTree();
-  }, [params.treeHash]);
+  }, [params.treeHash, session?.user?.id]);
 
   const onNodeClick = useCallback((event: React.MouseEvent, node: FlowNode) => {
     setSelectedNode(node.data);
@@ -137,86 +166,13 @@ export default function App() {
   }, []);
 
   const onNewNode = (newNode: Node) => {
-    // Instead of refetching, insert the new node into existing structure
-    // Find parent in current nodes and recalculate layout
+    // Add the new node to the existing flat list and regenerate layout
+    const currentNodesData = nodes.map(n => n.data);
+    const updatedNodesList = [...currentNodesData, newNode];
     
-    // Find the parent node in the flow
-    const parentFlowNode = nodes.find(n => n.id === newNode.parentId?.toString());
-    if (!parentFlowNode) {
-      console.error('Parent node not found, refetching entire tree');
-      // Fallback: refetch if we can't find parent
-      refetchTree();
-      return;
-    }
-
-    // Get the parent's level by counting ancestors
-    const getNodeLevel = (nodeId: string): number => {
-      const node = nodes.find(n => n.id === nodeId);
-      if (!node || !node.data.parentId) return 0;
-      return getNodeLevel(node.data.parentId.toString()) + 1;
-    };
-    
-    const newLevel = getNodeLevel(newNode.parentId!.toString()) + 1;
-
-    // Count current nodes at the new level
-    const nodesAtNewLevel = nodes.filter(n => {
-      const level = getNodeLevel(n.id);
-      return level === newLevel;
-    }).length;
-
-    // Calculate position for the new node
-    // We need to recalculate all nodes at this level to maintain spacing
-    const currentIndex = nodesAtNewLevel;
-    const totalNodesAtLevel = nodesAtNewLevel + 1;
-    
-    const x = (currentIndex - (totalNodesAtLevel - 1) / 2) * horizontalSpacing;
-    const y = -newLevel * verticalSpacing;
-
-    // Create new flow node
-    const newFlowNode: FlowNode = {
-      id: newNode.id.toString(),
-      position: { x, y },
-      data: { ...newNode, children: [], flashcards: [] } as any
-    };
-
-    // Create new edge from parent to new node
-    const newFlowEdge: FlowEdge = {
-      id: `${newNode.parentId}-${newNode.id}`,
-      source: newNode.parentId!.toString(),
-      target: newNode.id.toString()
-    };
-
-    // Reposition existing nodes at the same level to maintain even spacing
-    const updatedNodes = nodes.map(node => {
-      const nodeLevel = getNodeLevel(node.id);
-      if (nodeLevel === newLevel) {
-        const currentNodes = nodes.filter(n => getNodeLevel(n.id) === newLevel);
-        const index = currentNodes.findIndex(n => n.id === node.id);
-        const newX = (index - totalNodesAtLevel / 2 + 0.5) * horizontalSpacing;
-        return { ...node, position: { ...node.position, x: newX } };
-      }
-      return node;
-    });
-
-    // Update state with new node and repositioned existing nodes
-    setNodes([...updatedNodes, newFlowNode]);
-    setEdges([...edges, newFlowEdge]);
-  };
-
-  // Helper function to refetch tree (fallback)
-  const refetchTree = async () => {
-    try {
-      const res = await fetch(`/api/trees/${params.treeHash}`);
-      if (!res.ok) {
-        throw new Error('Failed to fetch tree data');
-      }
-      const treeData: GetTreeByHashResponse = await res.json();
-      const { nodes: flowNodes, edges: flowEdges } = generateNodesAndEdges(treeData);
-      setNodes(flowNodes);
-      setEdges(flowEdges);
-    } catch (err) {
-      console.error('Error refreshing tree:', err);
-    }
+    const { nodes: flowNodes, edges: flowEdges } = generateNodesAndEdges(updatedNodesList);
+    setNodes(flowNodes);
+    setEdges(flowEdges);
   };
 
   return (

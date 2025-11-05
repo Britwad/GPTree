@@ -24,6 +24,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   trees         Tree[]
+  nodes         Node[]
 }
 
 model Account {
@@ -79,7 +80,11 @@ model Node {
   followups  String[]
   treeId     Int
   tree       Tree        @relation(fields: [treeId], references: [id])
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
   flashcards Flashcard[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   // Self-relation for parent → children
   parentId Int?

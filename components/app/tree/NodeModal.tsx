@@ -90,7 +90,7 @@ const NodeModal = ({
       }
 
       setPrompt(""); // Clear input
-      onNewNode?.(data); // Notify parent
+      onNewNode?.(data.node); // Notify parent
       onClose();
     } finally {
       setIsLoading(false);

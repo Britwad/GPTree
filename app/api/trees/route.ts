@@ -14,6 +14,7 @@ import {
     groqTeacherPrompt,
     groqRootPrompt
  } from "@/backend_helpers/groq_helpers";
+import { generate_node_content } from "@/backend_helpers/generate_node_content";
 
 // Create a new tree for a user
 export async function POST(request: NextRequest) {
@@ -22,20 +23,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const data = CreateTreeSchema.parse(body) as CreateTree;
 
-        // Generate content for the root node based on the prompt
-        const stream = await getGroqResponse([
-            { role: "system", content: groqTeacherPrompt },
-            { role: "user", content: `Create a very broad overview for a topic tree on: ${data.prompt}. `
-                    + groqRootPrompt }
-        ]);
-        let content = "";
-        const reader = stream.getReader();
-        const decoder = new TextDecoder();
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            content += decoder.decode(value);
-        }
+        const content = await generate_node_content(data.prompt);
 
         // Create the tree
         const created = await prisma.$transaction(async (tx) => {

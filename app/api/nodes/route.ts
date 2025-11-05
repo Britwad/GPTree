@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { CreateNodeSchema, GetNodesSchema } from "@/lib/validation_schemas";
+import { generate_node_content } from "@/backend_helpers/generate_node_content";
 
 export async function GET(request: NextRequest) {
     try {
@@ -78,12 +79,14 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        const content = await generate_node_content(parsed.question);
+
         // create the new node
         const created = await prisma.node.create({
             data: {
                 name: "",
                 question: parsed.question,
-                content: "",
+                content,
                 followups: [],
                 treeId: parent.treeId,
                 parentId: parent.id,

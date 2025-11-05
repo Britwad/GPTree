@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import useSWR from "swr";
 import { type PaginatedTreesResponse } from "@/lib/validation_schemas";
 
+
 // Fetcher function for SWR
 const fetcher = async (url: string): Promise<PaginatedTreesResponse> => {
     const response = await fetch(url);
@@ -43,7 +44,7 @@ export default function TreeLayout({
     const trees = data?.trees ?? [];
     const loading = isLoading || status === "loading";
 
-
+    
 
     return (
         <div className="flex h-[calc(100vh-4rem)]">

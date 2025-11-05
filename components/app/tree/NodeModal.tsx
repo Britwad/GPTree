@@ -39,7 +39,7 @@ const NodeModal = ({
 
   if (!node) return null;
 
-  // Parse JSON content for display
+  // Parse content JSON for parent node display
   let overview = "";
   let subtopics: string[] = [];
   try {
@@ -51,9 +51,18 @@ const NodeModal = ({
   }
 
   const onSubmit = async () => {
-    if (!prompt.trim()) return alert("Question cannot be empty");
-    if (!session?.user?.id) return alert("You must be signed in");
-    if (!node.treeId) return alert("Parent node missing treeId");
+    if (!prompt.trim()) {
+      alert("Question cannot be empty");
+      return;
+    }
+    if (!session?.user?.id) {
+      alert("You must be signed in to create a node");
+      return;
+    }
+    if (!node.treeId) {
+      alert("Parent node missing treeId");
+      return;
+    }
 
     setIsLoading(true);
 
@@ -63,6 +72,8 @@ const NodeModal = ({
       treeId: node.treeId,
       parentId: node.id,
     };
+
+    console.log("Creating node:", body);
 
     try {
       const res = await fetch("/api/nodes", {
@@ -74,11 +85,12 @@ const NodeModal = ({
       const data = await res.json();
       if (!res.ok) {
         console.error("Failed to create node:", data);
-        return alert(data?.error || "Failed to create node");
+        alert(data?.error || "Failed to create node");
+        return;
       }
 
-      setPrompt(""); // clear input
-      onNewNode?.(data); // callback to parent
+      setPrompt(""); // Clear input
+      onNewNode?.(data); // Notify parent
       onClose();
     } finally {
       setIsLoading(false);
@@ -86,7 +98,9 @@ const NodeModal = ({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") onSubmit();
+    if (e.key === "Enter") {
+      onSubmit();
+    }
   };
 
   return (
@@ -97,6 +111,7 @@ const NodeModal = ({
       contentLabel={`Node: ${node.question}`}
       appElement={typeof window !== "undefined" ? document.body : undefined}
     >
+   
       <div className="flex flex-col gap-4">
         {/* Parent node display */}
         <div>

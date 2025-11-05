@@ -5,13 +5,8 @@ import { useSession, signIn, signOut } from "next-auth/react";
 
 export default function Header() {
   const { data: session, status } = useSession();
-
-  // Don't show header if user is not logged in
-  if (status === "loading") {
-    return null;
-  }
   
-  if (!session) {
+  if (!session && status !== "loading") {
     return null;
   }
 

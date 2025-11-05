@@ -3,7 +3,53 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { CreateNodeSchema } from "@/lib/validation_schemas";
+import { CreateNodeSchema, GetNodesSchema } from "@/lib/validation_schemas";
+
+export async function GET(request: NextRequest) {
+    try {
+        const { searchParams } = new URL(request.url);
+
+        const treeHash = searchParams.get('treeHash');
+        const userId = searchParams.get('userId');
+
+        // Build the query parameters object
+        const queryParams: { treeHash?: string; userId?: string } = {};
+        if (treeHash) queryParams.treeHash = treeHash;
+        if (userId) queryParams.userId = userId;
+
+        // Validate using GetNodesSchema
+        const parsed = GetNodesSchema.parse(queryParams);
+
+        // Build where clause
+        const where: { tree?: { hash: string; userId: string } | { userId: string } } = {};
+
+        where.tree = parsed.treeHash ? {
+            hash: parsed.treeHash,
+            userId: parsed.userId
+        } : {
+            userId: parsed.userId
+        };
+
+        // Fetch nodes from database, if treeHash provided the first node is root.
+        const nodes = await prisma.node.findMany({
+            where,
+            orderBy: { createdAt: 'asc' },
+        });
+
+        return NextResponse.json({ nodes }, { status: 200 });
+    } catch (err) {
+        console.error("GET /api/nodes error", err);
+
+        if (err instanceof z.ZodError) {
+            return NextResponse.json(
+                { errors: err.flatten() },
+                { status: 400 }
+            );
+        }
+
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
 
 export async function POST(request: NextRequest) {
     try {
@@ -41,6 +87,7 @@ export async function POST(request: NextRequest) {
                 followups: [],
                 treeId: parent.treeId,
                 parentId: parent.id,
+                userId: parsed.userId,
             },
         });
 

@@ -122,3 +122,12 @@ export const GetFlashcardByNodeIDSchema = z.object({
     nodeId: z.number().min(1)
 });
 export type GetFlashcardByNodeID = z.infer<typeof GetFlashcardByNodeIDSchema>;
+
+export const GetNodesSchema = z.object({
+    treeHash: z.string().min(1).optional(),
+    userId: z.string().min(1),
+});
+export type GetNodes = z.infer<typeof GetNodesSchema>;
+export type GetNodesResponse = {
+    nodes: Node[];
+}

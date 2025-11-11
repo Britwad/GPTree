@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { Prisma } from "@/app/generated/prisma";
 import { z } from "zod";
 import { CreateNodeSchema, GetNodesSchema, StructuredNodeSchema, CreatedFlashcard } from "@/lib/validation_schemas";
-import { parseStructuredNode, generateFlashcards } from "@/backend_helpers/groq_helpers";
+import { getGroqResponse, nodeSystemPrompt, generateNodeFields, parseStructuredNode, generateFlashcards } from "@/backend_helpers/groq_helpers";
 import { id } from "zod/locales";
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
@@ -84,52 +84,13 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
         }
 
-        const seedPrompt = parsed.question ?? "";
-        let nodeName = "";
-        let nodeContent = "";
-        let followups: string[] = [];
-
-        if (seedPrompt.trim().length > 0) {
-            const systemPrompt = `You are an expert that writes short node titles, detailed content, and follow-up user prompts.
-                                 Respond with a single valid JSON object with keys: name, content, followups.
-                                 - name: short title (3-7 words)
-                                 - content: 1-3 paragraphs explaining the idea, include examples when helpful
-                                 - followups: array of 1-6 short user-facing next-step prompts (3-12 words)
-                                 Return JSON only, no markdown or commentary.`;
-
-            const messages = [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: `Create a node for this prompt:\n\n${seedPrompt}\n\nContext: none` },
-            ];
-
-            try {
-                const raw = await callGroqChat(messages);
-                const structured = parseStructuredNode(raw);
-                let stringContent: string;
-                if (typeof structured.content !== 'string') {
-                    stringContent = JSON.stringify(structured.content);
-                } else {
-                    stringContent = structured.content;
-                }
-
-                nodeName = structured.name;
-                nodeContent = stringContent;
-                followups = structured.followups;
-            } catch (gErr: unknown) {
-                console.error("Groq generation error:", gErr);
-
-                const detail = gErr instanceof Error ? gErr.message : String(gErr);
-                return NextResponse.json({ error: "Generation failed", detail }, { status: 502 });
-            }
-        } else {
-            return NextResponse.json({ error: "seed prompt (question) is required" }, { status: 400 });
-        }
+        const parsedNode = await generateNodeFields(parsed.question);
 
         const data: Prisma.NodeUncheckedCreateInput = {
-            name: nodeName,
+            name: parsedNode.name,
             question: parsed.question,
-            content: nodeContent,
-            followups,
+            content: parsedNode.content,
+            followups: parsedNode.followups,
             treeId: parent.treeId,
             parentId: parent.id,
             userId: parsed.userId,

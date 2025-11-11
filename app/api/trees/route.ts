@@ -10,11 +10,13 @@ import {
     type CreatedFlashcard
 } from "@/lib/validation_schemas";
 import {
+    generateNodeFields,
     getGroqResponse,
     groqTeacherPrompt,
     groqRootPrompt,
     parseStructuredNode,
     generateFlashcards
+    nodeSystemPrompt,
  } from "@/backend_helpers/groq_helpers";
 
 // Create a new tree for a user
@@ -24,31 +26,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const data = CreateTreeSchema.parse(body) as CreateTree;
 
-        // Generate content for the root node based on the prompt
-        // We're streaming to the backend right now but eventually
-        // we will stream to the client
-        const stream = await getGroqResponse([
-            { role: "system", content: groqTeacherPrompt },
-            { role: "user", content: `Create a very broad overview for a topic tree on: ${data.prompt}. `
-                    + groqRootPrompt }
-        ]);
-        let content = "";
-        const reader = stream.getReader();
-        const decoder = new TextDecoder();
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            content += decoder.decode(value);
-        }
-
-        // Parse and validate the content as a StructuredNode
-        const parsedNode = parseStructuredNode(content);
-        let stringContent: string;
-        if (typeof parsedNode.content !== 'string') {
-            stringContent = JSON.stringify(parsedNode.content);
-        } else {
-            stringContent = parsedNode.content;
-        }
+        const parsedNode = await generateNodeFields(data.prompt);
 
         // Create the tree
         const created = await prisma.$transaction(async (tx) => {
@@ -64,7 +42,7 @@ export async function POST(request: NextRequest) {
                 data: {
                     name: parsedNode.name,
                     question: data.prompt,
-                    content: stringContent,
+                    content: parsedNode.content,
                     followups: parsedNode.followups,
                     treeId: newTree.id,
                     userId: data.userId,

@@ -134,6 +134,7 @@ export type GetNodesResponse = {
 
 // Schema for the structured node returned by Groq
 export const StructuredNodeSchema = z.object({
+    status: z.enum(["success", "clarify"]),
     name: z.string().min(1),
     content: z.string().min(1),
     followups: z.array(z.string()).max(10),

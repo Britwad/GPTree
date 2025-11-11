@@ -44,7 +44,7 @@ export default function TreeLayout({
     const trees = data?.trees ?? [];
     const loading = isLoading || status === "loading";
 
-    
+    console.log("TREES:", trees);
 
     return (
         <div className="flex h-[calc(100vh-4rem)]">

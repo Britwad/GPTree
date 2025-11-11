@@ -175,14 +175,14 @@ Textarea.displayName = "Textarea";
 
 type StudyPageProps = {
   trees: Tree[];
-  flashcards: Flashcard[];
+  userId: string;
   onNavigate: (page: AppState["currentPage"]) => void;
   onUpdateFlashcard: (flashcardId: number, updates: Partial<Flashcard>) => void;
 };
 
 export default function StudyPage({
   trees,
-  flashcards,
+  userId,
   onNavigate,
   onUpdateFlashcard,
 }: StudyPageProps) {
@@ -200,6 +200,42 @@ export default function StudyPage({
     good: 0,
     easy: 0,
   });
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/nodes?userId=${encodeURIComponent(userId)}`);
+        const json = await res.json();
+        const nodes = json.nodes || [];
+
+        const cards: Flashcard[] = nodes.flatMap((n: any) =>
+          (n.flashcards || []).map((f: any) => ({
+            id: f.id,
+            front: f.name,
+            back: f.content,
+            nodeId: n.id,
+            treeId: n.treeId ?? n.tree?.id ?? 0,
+            interval: f.interval ?? 1,
+            easeFactor: f.easeFactor ?? 2.5,
+            nextReview: f.nextReview ? new Date(f.nextReview) : new Date(),
+          }))
+        );
+
+        if (!cancelled) setFlashcards(cards);
+      } catch (e) {
+        console.error("Failed to load flashcards", e);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, trees]);
+
 
   // Calculate tree stats
   const treeStats = trees.map((tree) => ({

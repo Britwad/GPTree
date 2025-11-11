@@ -140,3 +140,13 @@ export const StructuredNodeSchema = z.object({
     followups: z.array(z.string()).max(10),
 });
 export type StructuredNode = z.infer<typeof StructuredNodeSchema>;
+
+export const FlashcardsSchema = z.array(
+    z.object({
+        keyword: z.string().min(1),
+        definition: z.string().min(1),
+    })
+);
+export type FlashcardInput = { keyword: string; definition: string };
+export type CreatedFlashcard = {id: number; keyword: string; definition: string};
+

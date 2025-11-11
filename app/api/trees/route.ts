@@ -1,5 +1,4 @@
 // We use this route to create a new tree for a user
-
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
@@ -8,12 +7,16 @@ import {
     CreateTreeSchema,
     GetTreesSchema,
     type PaginatedTreesResponse, 
+    type CreatedFlashcard
 } from "@/lib/validation_schemas";
 import {
     generateNodeFields,
     getGroqResponse,
+    groqTeacherPrompt,
+    groqRootPrompt,
+    parseStructuredNode,
+    generateFlashcards
     nodeSystemPrompt,
-    parseStructuredNode
  } from "@/backend_helpers/groq_helpers";
 
 // Create a new tree for a user
@@ -50,9 +53,44 @@ export async function POST(request: NextRequest) {
             return { tree: newTree, node: rootNode };
         });
         
-        // Return the new tree and node
-        const res = JSON.parse(JSON.stringify(created));
-        return NextResponse.json(res, { status: 201 });
+        let flashcards: CreatedFlashcard[] = [];
+        try {
+        const flashcardData = await generateFlashcards({
+            nodeName: created.node.name,
+            nodeContent: stringContent,
+        });
+
+        if (flashcardData.length > 0) {
+            const createdFlashcards = await prisma.$transaction(
+            flashcardData.map((fc) =>
+                prisma.flashcard.create({
+                data: {
+                    nodeId: created.node.id,
+                    userId: data.userId,
+                    name: fc.keyword,
+                    content: fc.definition,
+                },
+                })
+            )
+            );
+
+            flashcards = createdFlashcards.map((fc) => ({
+            id: fc.id,
+            keyword: fc.name,
+            definition: fc.content,
+            }));
+        }
+        } catch (e) {
+        console.error("Root node flashcard generation error:", e);
+        }
+
+        return NextResponse.json(
+        { tree: created.tree, node: created.node, flashcards },
+        { status: 201 }
+        );
+
+
+
     } catch (err) {
         console.error("Error creating tree:", err);
         // If the error was in parsing, it's the client's fault: return 400

@@ -1,8 +1,70 @@
-import { StructuredNodeSchema } from "@/lib/validation_schemas";
+import { StructuredNodeSchema, FlashcardsSchema, FlashcardInput, CreatedFlashcard } from "@/lib/validation_schemas";
 import Groq from "groq-sdk";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 export type Message = { role: "system" | "user" | "assistant"; content: string };
+
+export async function getGroqChatCompletion(
+  messages: Message[],
+  model = "compound-beta"
+) {
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error("GROQ_API_KEY is not set");
+  }
+
+  const resp = await groq.chat.completions.create({
+    model,
+    messages,
+    temperature: 0.7,
+    max_tokens: 500,
+    stream: false, // This is NOT a streaming request
+  });
+
+  const content = resp?.choices?.[0]?.message?.content;
+  if (!content) {
+    throw new Error("Groq returned an empty response");
+  }
+  return content;
+}
+
+export async function generateFlashcards(params: {
+    nodeName: string, 
+    nodeContent: string,}): Promise<FlashcardInput[]> {
+    const {nodeName, nodeContent} = params;
+
+    const systemPrompt = `You are an assistant that extracts the most helpful study flashcards for the following content.
+                        Output JSON only: an array of objects with keys "keyword" and "definition".
+                        - keyword: a short phrase (1-3 words)
+                        - definition: 1-2 sentences defining or explaining it.
+                        Return between 4 and 8 cards. JSON only.`;
+
+    const userPrompt = `Create flashcards for this node content:\n\nTitle: ${nodeName}\n\nContent:\n${nodeContent}`;
+
+    const raw = await getGroqChatCompletion([
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+    ]);
+
+    let parsed: unknown;
+    try {
+        parsed = JSON.parse(raw);
+    } catch {
+        const first = raw.indexOf('[');
+        const last = raw.lastIndexOf(']');
+        parsed = JSON.parse(raw.slice(first, last + 1));
+    }
+
+    const validationResult = FlashcardsSchema.safeParse(parsed);
+
+    if (!validationResult.success) {
+        console.error("Flashcard generation validation error:", validationResult.error);
+        return [];
+    }
+
+    return validationResult.data;
+}
+
+
 
 // General method to get a response from Groq
 export async function getGroqResponse(messages: Message[]) {

@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@/app/generated/prisma";
 import { z } from "zod";
-import { CreateNodeSchema, GetNodesSchema, StructuredNodeSchema } from "@/lib/validation_schemas";
-import { generateNodeFields, getGroqResponse, nodeSystemPrompt, parseStructuredNode } from "@/backend_helpers/groq_helpers";
+import { CreateNodeSchema, GetNodesSchema, StructuredNodeSchema, CreatedFlashcard } from "@/lib/validation_schemas";
+import { getGroqResponse, nodeSystemPrompt, generateNodeFields, parseStructuredNode, generateFlashcards } from "@/backend_helpers/groq_helpers";
+import { id } from "zod/locales";
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
@@ -51,6 +52,7 @@ export async function GET(request: NextRequest) {
         const nodes = await prisma.node.findMany({
             where,
             orderBy: { createdAt: "asc" },
+            include: { flashcards: true },
         });
 
         return NextResponse.json({ nodes }, { status: 200 });
@@ -96,7 +98,41 @@ export async function POST(request: NextRequest) {
 
         const created = await prisma.node.create({ data });
 
-        return NextResponse.json({ node: created }, { status: 201 });
+        let flashcards: CreatedFlashcard[] = [];
+        try {
+            const flashcardData = await generateFlashcards({
+                nodeName: created.name,
+                nodeContent: nodeContent,
+            });
+
+            if (flashcardData.length > 0) {
+                const createdFlashcards = await prisma.$transaction(
+                    flashcardData.map((fc) =>
+                        prisma.flashcard.create({
+                            data: {
+                                nodeId: created.id,
+                                userId: parsed.userId,
+                                name: fc.keyword,
+                                content: fc.definition,
+                            },
+                        })
+                    )
+                );
+                
+                flashcards = createdFlashcards.map((fc) => ({
+                    id: fc.id,
+                    keyword: fc.name,
+                    definition: fc.content,
+                }));
+            }
+        } catch (e) {
+            console.error("Flashcard generation error:", e);
+        }
+
+        return NextResponse.json(
+            { node: created, followups, flashcards },
+            { status: 201 }
+        );
     } catch (err: unknown) {
         console.error("POST /api/node error", err);
 

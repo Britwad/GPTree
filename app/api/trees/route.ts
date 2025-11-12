@@ -12,10 +12,8 @@ import {
 import {
     generateNodeFields,
     getGroqResponse,
-    groqTeacherPrompt,
-    groqRootPrompt,
     parseStructuredNode,
-    generateFlashcards
+    generateFlashcards,
     nodeSystemPrompt,
  } from "@/backend_helpers/groq_helpers";
 
@@ -57,7 +55,7 @@ export async function POST(request: NextRequest) {
         try {
         const flashcardData = await generateFlashcards({
             nodeName: created.node.name,
-            nodeContent: stringContent,
+            nodeContent: created.node.content,
         });
 
         if (flashcardData.length > 0) {

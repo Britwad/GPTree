@@ -1,44 +1,31 @@
-import { PrismaClient, Prisma } from "../app/generated/prisma";
+import { PrismaClient } from '../app/generated/prisma';
 
 const prisma = new PrismaClient();
 
-const userData: Prisma.UserCreateInput[] = [
-  {
-    name: "Alice",
-    email: "alice@prisma.io",
-    posts: {
-      create: [
-        {
-          title: "Join the Prisma Discord",
-          content: "https://pris.ly/discord",
-          published: true,
-        },
-        {
-          title: "Prisma on YouTube",
-          content: "https://pris.ly/youtube",
-        },
-      ],
+async function main() {
+  const alice = await prisma.user.create({
+    data: {
+      name: "Alice",
+      email: "alice@prisma.io",
     },
-  },
-  {
-    name: "Bob",
-    email: "bob@prisma.io",
-    posts: {
-      create: [
-        {
-          title: "Follow Prisma on Twitter",
-          content: "https://www.twitter.com/prisma",
-          published: true,
-        },
-      ],
-    },
-  },
-];
+  });
 
-export async function main() {
-  for (const u of userData) {
-    await prisma.user.create({ data: u });
-  }
+  const bob = await prisma.user.create({
+    data: {
+      name: "Bob",
+      email: "bob@prisma.io",
+    },
+  });
+  
+  console.log({ alice, bob });
 }
 
-main();
+main()
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });

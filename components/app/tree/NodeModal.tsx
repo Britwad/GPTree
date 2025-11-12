@@ -8,7 +8,9 @@ import { type Node } from "@/app/generated/prisma/client";
 import { CreateNode } from "@/lib/validation_schemas";
 import MarkdownRenderer from "@/components/Generic/MarkdownRenderer";
 
-const customStyles = {
+import type { Styles } from "react-modal";
+
+const customStyles: Styles = {
   content: {
     top: "50%",
     left: "50%",
@@ -108,10 +110,10 @@ const NodeModal = ({
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
-      style={customStyles as any}
+      style={customStyles}
       contentLabel={`Node: ${node.question}`}
       appElement={typeof window !== "undefined" ? document.body : undefined}
-    >
+    > 
       {/* Close button - X icon in top right */}
       <button
         onClick={onClose}

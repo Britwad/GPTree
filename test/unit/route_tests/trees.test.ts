@@ -9,9 +9,11 @@ let first_user: User = {} as User;
 let first_tree: CreateTree = {} as CreateTree;
 beforeAll(async () => {
     // Clean test db before testing
+    await prisma.account.deleteMany();
+    await prisma.session.deleteMany();
+    await prisma.flashcard.deleteMany();
     await prisma.node.deleteMany();
     await prisma.tree.deleteMany();
-    await prisma.account.deleteMany();
     await prisma.user.deleteMany();
 
     // Create a user to own the trees
@@ -32,9 +34,11 @@ beforeAll(async () => {
 
 afterAll(async () => {
         // Clean up
+        await prisma.account.deleteMany();
+        await prisma.session.deleteMany();
+        await prisma.flashcard.deleteMany();
         await prisma.node.deleteMany();
         await prisma.tree.deleteMany();
-        await prisma.account.deleteMany();
         await prisma.user.deleteMany();
 });
 

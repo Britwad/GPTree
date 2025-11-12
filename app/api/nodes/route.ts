@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
         try {
             const flashcardData = await generateFlashcards({
                 nodeName: created.name,
-                nodeContent: nodeContent,
+                nodeContent: created.content,
             });
 
             if (flashcardData.length > 0) {
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json(
-            { node: created, followups, flashcards },
+            { node: created, followups: created.followups, flashcards },
             { status: 201 }
         );
     } catch (err: unknown) {

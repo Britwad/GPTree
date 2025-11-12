@@ -1,40 +1,47 @@
-// We use this route to get a flashcard by its node's ID
-// Change this later to use node hash instead of ID (maybe)
-
+// We use this route to get all flashcards by a node's ID
+// The file path `[id]` here is treated as the `nodeId`
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { GetFlashcardByNodeID, GetFlashcardByNodeIDSchema } from "@/lib/validation_schemas";
 
-export async function GET(request: NextRequest, params: GetFlashcardByNodeID) {
-    try {
-        const parsed = GetFlashcardByNodeIDSchema.parse(params);
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const params = await context.params;
 
-        // At some point this code will need to be changed to use the node hash
-        // get the flashcard
-        const flashcard = await prisma.flashcard.findMany({
-            where: {
-                nodeId: parsed.nodeId
-            }
-        });
+    const nodeIdString = params.id;
 
-        return NextResponse.json(flashcard, { status: 200 });
-    } catch (err) {
-        console.error("Error getting flashcards:", err);
+    const nodeId = parseInt(nodeIdString, 10);
 
-        // If the error was in parsing, it's the client's fault: return 400
-        if (err instanceof z.ZodError) {
-            return NextResponse.json(
-                { errors: z.flattenError(err) },
-                { status: 400 }
-            );
-        }
-
-        // Otherwise it's the server's fault: return 500
-        // We might want to have other error cases later, like if prisma fails
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 }
-        );
+    if (isNaN(nodeId)) {
+      return NextResponse.json(
+        { error: "Invalid node ID format" },
+        { status: 400 }
+      );
     }
-};
+
+    const flashcards = await prisma.flashcard.findMany({
+      where: {
+        nodeId: nodeId,
+      },
+    });
+
+    return NextResponse.json(flashcards, { status: 200 });
+  } catch (err) {
+    console.error("Error getting flashcards:", err);
+
+    if (err instanceof z.ZodError) {
+      return NextResponse.json(
+        { errors: err.flatten() },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}

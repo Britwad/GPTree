@@ -54,7 +54,7 @@ export default function Page() {
       trees={trees}
       userId={session.user.id}
       onNavigate={(p) => {
-        if (p === "dashboard") router.push("/dashboard");
+        if (p === "dashboard") router.push("/tree");
         else if (p === "landing" || p === "study") router.push("/");
         else router.push("/study");
       }}

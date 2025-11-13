@@ -8,12 +8,20 @@ import { useEffect } from "react";
 export default function Header() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  
+
   useEffect(() => {
     if (!session && status !== "loading") {
       router.push("/");
     }
   }, [session, status, router]);
+
+  if (status === "loading") {
+    return null;
+  }
+
+  if (!session) {
+    return null;
+  }
 
   return (
     <header className="border-b bg-white shadow-sm">

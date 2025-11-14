@@ -1,14 +1,3 @@
-Your public repository must contain a complete user manual. Anyone looking at your repository should 
-be able to easily find the user manual. The user manual is focused solely on people who want to use 
-your project.
-
-The user manual should describe the functionality of your project as you expect it to be at the end 
-of the quarter. It is completely fine if most features at this point are aspirational / incomplete.
-
-The user documentation should include at least the following information:
-
-A high-level description. What does the system do and why would a user want to use it.
-
 # **GPTree User Manual**
 
 ## **1. Overview**
@@ -29,28 +18,27 @@ repetition for better long-term memory.
 
 ## **2. Running GPTree**
 a. Open browser with http://localhost:3000 
-b. either sign in with you email or continue with Google
-
+b. Either sign in with you email or continue with Google
 
 
 ## **3. Using GPTree**
 a. Create an account 
     Add your email into the text box or signing in with Google
-    Once logged in, you'll see your dashboard listing all of your trees.
+    Once logged in, you'll see your dashboard listing all of your trees
 
 b. Create a Tree
     Click "New Tree"
     Enter a topic into the prompt box
     GPTree will generate a root node explaining the topic
     The Tree will display the root node which you could click to go back to if at any time you
-    create a child node
+    Create a child node
 
 c. Creating new nodes
     Click any node in your tree to open it
     There you will see the original question and response, key points, and suggested follow-up
     questions
     Click a follow-up to create a new node branching off the current node, or manually click new
-    node to go into a sub topic
+    Node to go into a sub topic
 
 d. Review and Navigate trees
     Use the Tree view page to see your learning structure
@@ -79,11 +67,11 @@ If you run into an issue, report it in the Issue Tracker https://github.com/Brit
 Filing a good Bug Report:
 
 ### **4.1. Describe the problem**
-    What you expected to happen>
+    What you expected to happen?
     What actually happened?
 
 ### 4.2. Include reproduction steps**
-    What steps you took leading up to the issue
+    What steps you took leading up to the issue?
 
 ### **4.3. Attach relevent details**
     Screenshots (User Interfact bug)

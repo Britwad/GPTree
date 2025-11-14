@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@/app/generated/prisma";
 import { z } from "zod";
-import { CreateNodeSchema, GetNodesSchema, StructuredNodeSchema, CreatedFlashcard } from "@/lib/validation_schemas";
-import { getGroqResponse, nodeSystemPrompt, generateNodeFields, parseStructuredNode, generateFlashcards } from "@/backend_helpers/groq_helpers";
+import { CreateNodeSchema, GetNodesSchema, StructuredNodeSchema, CreatedFlashcard, CreateNode } from "@/lib/validation_schemas";
+import { getGroqResponse, nodeSystemPrompt, parseStructuredNode, generateFlashcards, generateNodeStream } from "@/backend_helpers/groq_helpers";
 import { id } from "zod/locales";
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
@@ -70,69 +70,44 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
+        // First we parse the input
         const body = await request.json();
         const parsed = CreateNodeSchema.parse(body);
 
+        // Now we need to validate some things about the input:
+
+        // It must have a parentID
+        if (parsed.parentId === null) {
+            return NextResponse.json({ error: "parentId cannot be null for non-root nodes" }, { status: 400 });
+        }
+
+        // The parent must exist
         const parent = await prisma.node.findUnique({ where: { id: parsed.parentId } });
         if (!parent) {
             return NextResponse.json({ error: "Parent node not found" }, { status: 404 });
         }
 
+        // The user must own the tree that the parent belongs to
         const tree = await prisma.tree.findUnique({ where: { id: parent.treeId }, select: { userId: true } });
         if (!tree) return NextResponse.json({ error: "Tree not found" }, { status: 404 });
         if (tree.userId !== parsed.userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
         }
 
-        const parsedNode = await generateNodeFields(parsed.question);
-
-        const data: Prisma.NodeUncheckedCreateInput = {
-            name: parsedNode.name,
+        // Now we can set up the call to get a stream from our LLM
+        const nodeBody: CreateNode = {
             question: parsed.question,
-            content: parsedNode.content,
-            followups: parsedNode.followups,
+            userId: parsed.userId,
             treeId: parent.treeId,
             parentId: parent.id,
-            userId: parsed.userId,
         };
-
-        const created = await prisma.node.create({ data });
-
-        let flashcards: CreatedFlashcard[] = [];
-        try {
-            const flashcardData = await generateFlashcards({
-                nodeName: created.name,
-                nodeContent: created.content,
-            });
-
-            if (flashcardData.length > 0) {
-                const createdFlashcards = await prisma.$transaction(
-                    flashcardData.map((fc) =>
-                        prisma.flashcard.create({
-                            data: {
-                                nodeId: created.id,
-                                userId: parsed.userId,
-                                name: fc.keyword,
-                                content: fc.definition,
-                            },
-                        })
-                    )
-                );
-                
-                flashcards = createdFlashcards.map((fc) => ({
-                    id: fc.id,
-                    keyword: fc.name,
-                    definition: fc.content,
-                }));
-            }
-        } catch (e) {
-            console.error("Flashcard generation error:", e);
-        }
-
-        return NextResponse.json(
-            { node: created, followups: created.followups, flashcards },
-            { status: 201 }
+        const nodeStream = await generateNodeStream(
+            parsed.question,
+            nodeBody
         );
+
+        // Now we just pass that stream to the client
+        return new NextResponse(nodeStream, { status: 201 });
     } catch (err: unknown) {
         console.error("POST /api/node error", err);
 

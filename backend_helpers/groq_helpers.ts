@@ -1,5 +1,7 @@
-import { StructuredNodeSchema, FlashcardsSchema, FlashcardInput, CreatedFlashcard } from "@/lib/validation_schemas";
+import prisma from "@/lib/prisma";
+import { StructuredNodeSchema, FlashcardsSchema, FlashcardInput, CreatedFlashcard, StructuredNode, CreateNode } from "@/lib/validation_schemas";
 import Groq from "groq-sdk";
+import { createFlashcards } from "./prisma_helpers";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 export type Message = { role: "system" | "user" | "assistant"; content: string };
@@ -67,7 +69,7 @@ export async function generateFlashcards(params: {
 
 
 // General method to get a response from Groq
-export async function getGroqResponse(messages: Message[]) {
+export async function getGroqResponse(messages: Message[], params: CreateNode) {
     try {
         // Validate input
         if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -88,6 +90,10 @@ export async function getGroqResponse(messages: Message[]) {
             stream: true,
         });
 
+        // We need a way to store the LLM output in our database as it streams
+        // so we will hold it in this variable and append to it as we go
+        let fullResponse = "";
+
         // Now we want to make a readable stream to return
         return new ReadableStream({
             async start(controller) {
@@ -98,7 +104,17 @@ export async function getGroqResponse(messages: Message[]) {
                         // (i.e. push it into the stream to the client)
                         const content = chunk.choices[0]?.delta?.content;
                         if (content) controller.enqueue(new TextEncoder().encode(content));
+
+                        // We also append it to the full response
+                        fullResponse += content || "";
                     }
+
+                    // Our stream is over, so we can store the full response
+                    const node = await storeResponseAsNode(parseStructuredNode(fullResponse), params);
+
+                    // Then we make flashcards for it
+                    const flashcardData = await createFlashcards(node);
+
                 } catch (err) {
                     // If there's an error, we report it
                     controller.error(err);
@@ -114,8 +130,26 @@ export async function getGroqResponse(messages: Message[]) {
     }
 }
 
+// Helper function for storing a response in our database
+async function storeResponseAsNode(response: StructuredNode, params: CreateNode) {
+    // Create the node in the database
+    const node = await prisma.node.create({
+        data: {
+            name: response.name,
+            question: params.question,
+            content: response.content,
+            followups: response.followups,
+            treeId: params.treeId,
+            userId: params.userId,
+            parentId: params.parentId,
+        },
+    });
+
+    return node;
+}
+
 // Helper function for parsing
-export function parseStructuredNode(content: string) {
+export function parseStructuredNode(content: string): StructuredNode {
     let parsed: unknown;
     try {
         const trimmed = content.trim();
@@ -205,7 +239,7 @@ Example (clarify):
 `;
 
 
-export async function generateNodeFields(prompt: string) {
+export async function generateNodeStream(prompt: string, params: CreateNode) {
 
     // Generate content for the root node based on the prompt
     // We're streaming to the backend right now but eventually
@@ -213,16 +247,8 @@ export async function generateNodeFields(prompt: string) {
     const stream = await getGroqResponse([
         { role: "system", content: nodeSystemPrompt },
         { role: "user", content: `I want to learn about: ${prompt}.` }
-    ]);
-    let content = "";
-    const reader = stream.getReader();
-    const decoder = new TextDecoder();
-    while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        content += decoder.decode(value);
-    }
-    // Parse and validate the content as a StructuredNode
-    return parseStructuredNode(content);
+    ], params);
+
+    return stream;
 }
 

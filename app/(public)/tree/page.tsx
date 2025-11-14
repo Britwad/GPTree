@@ -17,10 +17,13 @@ export default function App() {
   // Submit prompt handler
   const onSubmit = async () => {
     setLoading(true);
+    // In order to stream from the backend, we have to get off this page,
+    // so we will omit the prompt which will just get us a tree hash
+    // without starting generation
     const res = await fetch("/api/trees", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: prompt, userId: session?.user?.id, prompt }),
+      body: JSON.stringify({ name: prompt, userId: session?.user?.id }),
     });
 
     const data = await res.json();

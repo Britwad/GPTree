@@ -42,12 +42,24 @@ export const CreateTreeSchema = z.object({
 });
 export type CreateTree = z.infer<typeof CreateTreeSchema>;
 
+// Schema for initializing a tree without generating its content
+// (we want this to help with some frontend navigation issues that come up with streaming)
+export const InitTreeSchema = z.object({
+    name: z.string().min(1).max(100),
+    userId: z.string().min(1),
+});
+export type InitTree = z.infer<typeof InitTreeSchema>;
+
+// We're also gonna need a union for creating and initializing trees
+export const CreateOrInitTreeSchema = z.union([CreateTreeSchema, InitTreeSchema]);
+export type CreateOrInitTree = z.infer<typeof CreateOrInitTreeSchema>;
+
 // Schema for creating a new node   
 export const CreateNodeSchema = z.object({
     question: z.string().min(1).max(500),
     userId: z.string().min(1),
     treeId: z.number().min(1),
-    parentId: z.number().min(1),
+    parentId: z.number().min(1).nullable(),
 });
 export type CreateNode = z.infer<typeof CreateNodeSchema>;
 

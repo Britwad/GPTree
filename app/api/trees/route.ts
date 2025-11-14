@@ -7,88 +7,62 @@ import {
     CreateTreeSchema,
     GetTreesSchema,
     type PaginatedTreesResponse, 
-    type CreatedFlashcard
+    type CreatedFlashcard,
+    CreateNode,
+    InitTreeSchema,
+    CreateOrInitTreeSchema
 } from "@/lib/validation_schemas";
 import {
-    generateNodeFields,
     getGroqResponse,
     parseStructuredNode,
     generateFlashcards,
     nodeSystemPrompt,
+    generateNodeStream,
  } from "@/backend_helpers/groq_helpers";
 
-// Create a new tree for a user
+// Create the root node and flashcards for a user's new tree
 export async function POST(request: NextRequest) {
     try {
         // Read and parse the request
+        // We have to use SafeParse to check if we are initializing or creating with prompt
         const body = await request.json();
-        const data = CreateTreeSchema.parse(body) as CreateTree;
+        const data_check = CreateOrInitTreeSchema.safeParse(body);
+        if (!data_check.success) {
+            throw data_check.error;
+        }
 
-        const parsedNode = await generateNodeFields(data.prompt);
+        if (!("prompt" in data_check.data)) {
+            // It's an init request
+            const data = InitTreeSchema.parse(body);
 
-        // Create the tree
-        const created = await prisma.$transaction(async (tx) => {
-            const newTree = await tx.tree.create({
+            // Create the tree
+            const created_tree = await prisma.tree.create({
                 data: {
                     name: data.name,
                     userId: data.userId,
                 }
             });
 
-            // Create the Root Node
-            const rootNode = await tx.node.create({
-                data: {
-                    name: parsedNode.name,
-                    question: data.prompt,
-                    content: parsedNode.content,
-                    followups: parsedNode.followups,
-                    treeId: newTree.id,
-                    userId: data.userId,
-                    parentId: null,
-                },
-            });
-
-            return { tree: newTree, node: rootNode };
-        });
+            // Now we just return it
+            return NextResponse.json(created_tree, { status: 201 });
+        }
         
-        let flashcards: CreatedFlashcard[] = [];
-        try {
-        const flashcardData = await generateFlashcards({
-            nodeName: created.node.name,
-            nodeContent: created.node.content,
-        });
+        // Otherwise it must be a create with prompt request
+        const data = CreateTreeSchema.parse(body);
 
-        if (flashcardData.length > 0) {
-            const createdFlashcards = await prisma.$transaction(
-            flashcardData.map((fc) =>
-                prisma.flashcard.create({
-                data: {
-                    nodeId: created.node.id,
-                    userId: data.userId,
-                    name: fc.keyword,
-                    content: fc.definition,
-                },
-                })
-            )
-            );
-
-            flashcards = createdFlashcards.map((fc) => ({
-            id: fc.id,
-            keyword: fc.name,
-            definition: fc.content,
-            }));
-        }
-        } catch (e) {
-        console.error("Root node flashcard generation error:", e);
-        }
-
-        return NextResponse.json(
-        { tree: created.tree, node: created.node, flashcards },
-        { status: 201 }
+        // Get the stream for the node generation
+        const rootBody: CreateNode = {
+            question: data.prompt,
+            userId: data.userId,
+            treeId: 0xDEADBEEF, // Come back to this later, I need to go eat food
+            parentId: null,
+        };
+        const nodeStream = await generateNodeStream(
+            data.prompt,
+            rootBody
         );
 
-
-
+        return new NextResponse(nodeStream, { status: 201 });
     } catch (err) {
         console.error("Error creating tree:", err);
         // If the error was in parsing, it's the client's fault: return 400

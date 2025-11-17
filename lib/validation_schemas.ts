@@ -162,3 +162,16 @@ export const FlashcardsSchema = z.array(
 export type FlashcardInput = { keyword: string; definition: string };
 export type CreatedFlashcard = {id: number; keyword: string; definition: string};
 
+export const NodeSchema = z.object({
+    question: z.string().min(1).max(500),
+    userId: z.string().min(1),
+    treeId: z.number().min(1),
+    parentId: z.number().min(1).nullable(),
+    name: z.string().min(1).max(200),
+    id: z.number().min(1),
+    content: z.string().min(1),
+    followups: z.array(z.string()),
+    createdAt: z.coerce.date(),
+    updatedAt: z.coerce.date(),
+});
+export type ValidationNode = z.infer<typeof NodeSchema>;

@@ -9,7 +9,7 @@ import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { type Node, type Tree } from '@/app/generated/prisma/client';
 import { generateNode } from '@/frontend_helpers/node_helpers';
-import { CreateNode } from '@/lib/validation_schemas';
+import { CreateNode, GetNodesSchema, NodeSchema } from '@/lib/validation_schemas';
 import { JSONParser, ParsedElementInfo } from "@streamparser/json-whatwg"
 import { set } from 'zod';
 
@@ -241,8 +241,8 @@ export default function App() {
             throw new Error('Failed to fetch latest node after streaming');
           }
           const node_data = await node_res.json();
-          console.log("Latest node response:", node_res);    
-          setSelectedNode(node_data);
+          const node = NodeSchema.parse(node_data.node); 
+          setSelectedNode(node);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {

@@ -186,7 +186,7 @@ const NodeModal = ({
         </div>
 
         {/* Pre-generated follow-ups */}
-        {node && node.followups && (
+        { node && node.followups && (
           <div>
             <h3 className="text-lg font-semibold mb-2">Suggested Follow-ups</h3>
             <div className="flex flex-col gap-2">
@@ -207,7 +207,7 @@ const NodeModal = ({
           <div>
             <h3 className="text-lg font-semibold mb-2">Suggested Follow-ups</h3>
             <div className="flex flex-col gap-2">
-              {streamingFollowups?.map((question, i) => (
+              {streamingFollowups && streamingFollowups.map((question, i) => (
                 <button
                   key={i}
                   onClick={() => onSubmit(question)}

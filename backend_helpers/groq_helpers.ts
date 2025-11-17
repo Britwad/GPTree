@@ -236,15 +236,15 @@ Formatting for "content":
 
 Formatting for "followups":
 - In "success": 2–5 concise, distinct educational follow-up questions.
-- In "clarify": 0–3 optional “Did you mean…?” suggestions.
+- In "clarify": 0–3 optional suggestions for directed questions.
 
 Output **only** the JSON. No preamble, commentary, or backticks.
 
 Example (success):
 {
   "status": "success",
-  "name": "Gravity",
-  "content": "## Understanding Gravity\\n\\nGravity is the force that pulls...",
+  "name": "Understanding Gravity",
+  "content": "Gravity is the force that pulls...",
   "followups": [
     "How does gravity affect time?",
     "What did Einstein contribute to our understanding of gravity?"

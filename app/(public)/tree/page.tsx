@@ -59,6 +59,7 @@ export default function App() {
           onChange={(e) => setPrompt(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="What do you want to learn about?"
+          disabled={loading}
           className="w-96 border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-900 focus:ring-2 focus:ring-green-500 focus:outline-none"
         />
         <button

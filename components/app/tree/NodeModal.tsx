@@ -46,7 +46,7 @@ const NodeModal = ({
   isOpen?: boolean;
   node: Node | null;
   onClose: () => void;
-  onNewNode?: (newNode: Node) => void;
+  onNewNode: (newNode: CreateNode) => void;
   streamingQuestion?: string;
   streamingContent?: string;
   streamingFollowups?: string[];
@@ -90,21 +90,21 @@ const NodeModal = ({
     console.log("Creating node:", body);
 
     try {
-      const res = await fetch("/api/nodes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      // const res = await fetch("/api/nodes", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify(body),
+      // });
 
-      const data = await res.json();
-      if (!res.ok) {
-        console.error("Failed to create node:", data);
-        alert(data?.error || "Failed to create node");
-        return;
-      }
+      // const data = await res.json();
+      // if (!res.ok) {
+      //   console.error("Failed to create node:", data);
+      //   alert(data?.error || "Failed to create node");
+      //   return;
+      // }
 
       setPrompt(""); // Clear input
-      onNewNode?.(data.node); // Notify parent
+      onNewNode(body); // Notify parent
       onClose();
     } finally {
       setIsLoading(false);
@@ -212,8 +212,7 @@ const NodeModal = ({
                   key={i}
                   onClick={() => onSubmit(question)}
                   disabled={isLoading}
-                  className="w-full text-left px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
+                  className="w-full text-left px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                   {question}
                 </button>
               ))}

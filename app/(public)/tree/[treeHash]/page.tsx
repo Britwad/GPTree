@@ -27,6 +27,9 @@ interface FlowEdge {
 
 type StreamingNode = {
   question: string;
+  userId?: string;
+  treeId?: number;
+  parentId?: number | null;
   content: string;
   followups?: string[];
   isOpen: boolean;
@@ -195,10 +198,10 @@ export default function App() {
       try {
           // We should have a selected node unless we're creating a root
           let body: CreateNode = {
-            question: selectedNode ? selectedNode.question : "",
+            question: streamingNode ? streamingNode.question : "",
             userId: session.user.id,
-            treeId: selectedNode ? selectedNode.treeId : 0,
-            parentId: selectedNode ? selectedNode.id : null,
+            treeId: streamingNode && streamingNode.treeId ? streamingNode.treeId : 0,
+            parentId: streamingNode && streamingNode.parentId ? streamingNode.parentId : null,
           };
 
           // Check if we're creating a root node
@@ -219,13 +222,15 @@ export default function App() {
             };
           }
 
-          // Now we stream the node generation
+          // We need to set up a JSON parser to handle the streaming response
           const stream = await generateNode(body);
           const parser = new JSONParser();
           const reader = stream.body?.pipeThrough(parser).getReader();
           if (!reader) {
             throw new Error('Failed to get reader for root node stream');
           }
+          
+          // Then we can start reading from the stream
           const newNode: StreamingNode = {
             question: body.question,
             content: "",
@@ -235,14 +240,8 @@ export default function App() {
           setStreamingNode(newNode);
           await streamNode(reader);
           
-          // Now we need to set the new node as the selected node
-          const node_res = await fetch(`/api/trees/${params.treeHash}/latest_node`);
-          if (!node_res.ok) {
-            throw new Error('Failed to fetch latest node after streaming');
-          }
-          const node_data = await node_res.json();
-          const node = NodeSchema.parse(node_data.node); 
-          setSelectedNode(node);
+          // Now we need to handle some post-stream tasks
+          await onStreamFinish();
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -265,7 +264,40 @@ export default function App() {
     }
   }, []);
 
-  const onNewNode = (newNode: Node) => {
+  const onNewNode = (newNode: CreateNode) => {
+    // We need to tell React we're streaming a new node
+    setStreamingNode({
+      question: newNode.question,
+      userId: newNode.userId,
+      treeId: newNode.treeId,
+      parentId: newNode.parentId,
+      content: "",
+      followups: [],
+      isOpen: true
+      });
+    setStreamingIsOpen(true);
+  };
+
+  /**
+   * This method is called when the streaming of a node ends, it should only be called
+   * after the streaming is finished. It will get the node that was created and add it to the
+   * existing list of nodes, regenerating the layout.
+   * @throws Error if fetching the latest node fails
+   */
+  const onStreamFinish = async () => {
+    // Sanity check on these values, though they should be set already
+    setStreamingNode(null);
+    setStreamingIsOpen(false);
+
+    // Fetch the latest node that was created
+    const node_res = await fetch(`/api/trees/${params.treeHash}/latest_node`);
+    if (!node_res.ok) {
+      throw new Error('Failed to fetch latest node after streaming');
+    }
+    const node_data = await node_res.json();
+    const newNode = NodeSchema.parse(node_data.node);
+    setSelectedNode(newNode);
+      
     // Add the new node to the existing flat list and regenerate layout
     const currentNodesData = nodes.map(n => n.data);
     const updatedNodesList = [...currentNodesData, newNode];
@@ -273,7 +305,7 @@ export default function App() {
     const { nodes: flowNodes, edges: flowEdges } = generateNodesAndEdges(updatedNodesList);
     setNodes(flowNodes);
     setEdges(flowEdges);
-  };
+  }
 
   return (
     <div className="w-full h-full">

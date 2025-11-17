@@ -28,7 +28,6 @@ beforeAll(async () => {
     first_tree = {
         name: "test_tree_a",
         userId: first_user.id,
-        prompt: "This is a test prompt for creating a tree, so make this tree about how to grow trees."
     };
 });
 
@@ -60,8 +59,7 @@ describe('Testing tree endpoints', () => {
         // Check response
         expect(res.status).toEqual(201);
         const parsed = await res.json();
-        console.log("node: ", parsed.node);
-        const created_tree = TreeSchema.parse(parsed.tree);
+        const created_tree = TreeSchema.parse(parsed);
         expect(created_tree.name).toEqual(body.name);
         expect(created_tree.userId).toEqual(body.userId);
 
@@ -76,7 +74,7 @@ describe('Testing tree endpoints', () => {
         });
 
         // Now call the route directly
-        const res = await GetTree(req, { params: { treeHash: first_tree_hash }});
+        const res = await GetTree(req, { params: Promise.resolve({ treeHash: first_tree_hash }) });
 
         // Check response
         expect(res.status).toEqual(200);

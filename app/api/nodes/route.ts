@@ -2,32 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@/app/generated/prisma";
 import { z } from "zod";
-import { CreateNodeSchema, GetNodesSchema, StructuredNodeSchema, CreatedFlashcard } from "@/lib/validation_schemas";
-import { getGroqResponse, nodeSystemPrompt, generateNodeFields, parseStructuredNode, generateFlashcards } from "@/backend_helpers/groq_helpers";
-import { id } from "zod/locales";
-
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-
-async function callGroqChat(messages: Array<{ role: string; content: string }>, model = 'compound-beta') {
-    if (!process.env.GROQ_API_KEY) {
-        throw new Error("GROQ_API_KEY is not set");
-    }
-
-    const resp = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-        },
-        body: JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 500 }),
-    });
-    if (!resp.ok) {
-        throw new Error(`GROQ API error: ${resp.status} ${resp.statusText}`);
-    }
-    const json = await resp.json();
-    const content = json?.choices?.[0]?.message?.content ?? json?.choices?.[0]?.text;
-    return content as string;
-}
+import { CreateNodeSchema, GetNodesSchema, StructuredNodeSchema, CreatedFlashcard, CreateNode } from "@/lib/validation_schemas";
+import { generateNodeStream } from "@/backend_helpers/groq_helpers";
 
 export async function GET(request: NextRequest) {
     try {
@@ -68,76 +44,64 @@ export async function GET(request: NextRequest) {
     }
 }
 
+/**
+ * This route creates a new node in a tree, streaming the content as it is generated.
+ * @param request a request for this route that has the data for a {@link CreateNode}
+ * @returns a NextResponse with 201 status and a ReadableStream of the node content on success,
+ * or an error message with appropriate status code on failure.
+ */
 export async function POST(request: NextRequest) {
     try {
+        // First we parse the input
         const body = await request.json();
         const parsed = CreateNodeSchema.parse(body);
 
-        const parent = await prisma.node.findUnique({ where: { id: parsed.parentId } });
-        if (!parent) {
-            return NextResponse.json({ error: "Parent node not found" }, { status: 404 });
-        }
+        // We'll put the stream in this variable later
+        let nodeStream: ReadableStream<Uint8Array>;
 
-        const tree = await prisma.tree.findUnique({ where: { id: parent.treeId }, select: { userId: true } });
-        if (!tree) return NextResponse.json({ error: "Tree not found" }, { status: 404 });
-        if (tree.userId !== parsed.userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-        }
-
-        const parsedNode = await generateNodeFields(parsed.question);
-
-        const data: Prisma.NodeUncheckedCreateInput = {
-            name: parsedNode.name,
-            question: parsed.question,
-            content: parsedNode.content,
-            followups: parsedNode.followups,
-            treeId: parent.treeId,
-            parentId: parent.id,
-            userId: parsed.userId,
-        };
-
-        const created = await prisma.node.create({ data });
-
-        let flashcards: CreatedFlashcard[] = [];
-        try {
-            const flashcardData = await generateFlashcards({
-                nodeName: created.name,
-                nodeContent: created.content,
-            });
-
-            if (flashcardData.length > 0) {
-                const createdFlashcards = await prisma.$transaction(
-                    flashcardData.map((fc) =>
-                        prisma.flashcard.create({
-                            data: {
-                                nodeId: created.id,
-                                userId: parsed.userId,
-                                name: fc.keyword,
-                                content: fc.definition,
-                            },
-                        })
-                    )
-                );
-                
-                flashcards = createdFlashcards.map((fc) => ({
-                    id: fc.id,
-                    keyword: fc.name,
-                    definition: fc.content,
-                }));
+        // Now we need to validate some things about the input:
+        if (parsed.parentId) {
+            // The parent must exist for non root nodes
+            const parent = await prisma.node.findUnique({ where: { id: parsed.parentId } });
+            if (!parent) {
+                return NextResponse.json({ error: "Parent node not found" }, { status: 404 });
             }
-        } catch (e) {
-            console.error("Flashcard generation error:", e);
+
+            // The user must own the tree that the parent belongs to
+            const userId = await prisma.tree.findUnique({ where: { id: parent.treeId }, select: { userId: true } });
+            if (!userId) return NextResponse.json({ error: "Tree not found" }, { status: 404 });
+            if (userId.userId !== parsed.userId) {
+                return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+            }
+            
+            // Now we can set up the call to get a stream from our LLM,
+            // which is simple if this isn't a root node
+            nodeStream = await generateNodeStream(
+                parsed.question,
+                parsed
+            );
+        } else {
+            // For root nodes, we need to verify that the user owns the tree
+            const tree_info = await prisma.tree.findUnique({ where: { id: parsed.treeId }, select: { userId: true, name: true } });
+            if (!tree_info) return NextResponse.json({ error: "Tree not found" }, { status: 404 });
+            if (tree_info.userId !== parsed.userId) {
+                return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+            }
+
+            // Now we can set up the call to get a stream from our LLM
+            nodeStream = await generateNodeStream(
+                tree_info.name,
+                parsed
+            );
         }
 
-        return NextResponse.json(
-            { node: created, followups: created.followups, flashcards },
-            { status: 201 }
-        );
+        // Now we just pass that stream to the client
+        return new NextResponse(nodeStream, { status: 201 });
     } catch (err: unknown) {
         console.error("POST /api/node error", err);
 
         if (err instanceof z.ZodError) {
-            return NextResponse.json({ errors: err.flatten() }, { status: 400 });
+            return NextResponse.json({ errors: z.treeifyError(err) }, { status: 400 });
         }
 
         const detail = err instanceof Error ? err.message : "An unknown error occurred";

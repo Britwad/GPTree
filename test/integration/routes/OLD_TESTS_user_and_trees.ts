@@ -1,3 +1,5 @@
+// This file contains some old tests that don't really match up with any behavior we want
+// Later on we should come back and rexamine whether or not these tests should be deleted or updated
 import prisma from "@/lib/prisma";
 import { GET as GetUserTrees } from "@/app/api/users/[id]/trees/route";
 import { POST as MakeTree } from "@/app/api/trees/route";

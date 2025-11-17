@@ -38,16 +38,28 @@ export type GetByUserId = z.infer<typeof GetByUserIdSchema>;
 export const CreateTreeSchema = z.object({
     name: z.string().min(1).max(100),
     userId: z.string().min(1),
-    prompt: z.string().min(1).max(500)
+    prompt: z.string().min(1).max(500).optional(),
 });
 export type CreateTree = z.infer<typeof CreateTreeSchema>;
+
+// Schema for initializing a tree without generating its content
+// (we want this to help with some frontend navigation issues that come up with streaming)
+export const InitTreeSchema = z.object({
+    name: z.string().min(1).max(100),
+    userId: z.string().min(1),
+});
+export type InitTree = z.infer<typeof InitTreeSchema>;
+
+// We're also gonna need a union for creating and initializing trees
+export const CreateOrInitTreeSchema = z.union([CreateTreeSchema, InitTreeSchema]);
+export type CreateOrInitTree = z.infer<typeof CreateOrInitTreeSchema>;
 
 // Schema for creating a new node   
 export const CreateNodeSchema = z.object({
     question: z.string().min(1).max(500),
     userId: z.string().min(1),
     treeId: z.number().min(1),
-    parentId: z.number().min(1),
+    parentId: z.number().min(1).nullable(),
 });
 export type CreateNode = z.infer<typeof CreateNodeSchema>;
 
@@ -150,3 +162,16 @@ export const FlashcardsSchema = z.array(
 export type FlashcardInput = { keyword: string; definition: string };
 export type CreatedFlashcard = {id: number; keyword: string; definition: string};
 
+export const NodeSchema = z.object({
+    question: z.string().min(1).max(500),
+    userId: z.string().min(1),
+    treeId: z.number().min(1),
+    parentId: z.number().min(1).nullable(),
+    name: z.string().min(1).max(200),
+    id: z.number().min(1),
+    content: z.string().min(1),
+    followups: z.array(z.string()),
+    createdAt: z.coerce.date(),
+    updatedAt: z.coerce.date(),
+});
+export type ValidationNode = z.infer<typeof NodeSchema>;

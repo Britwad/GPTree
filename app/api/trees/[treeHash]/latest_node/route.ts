@@ -11,12 +11,13 @@ import { z } from "zod";
  */
 export async function GET(request: NextRequest, { params }: { params: { treeHash: string } }) {
     try {
-        // First we parse the input 
-        const treeHash = GetTreeByHashSchema.parse({ hash: params.treeHash });
+        // First we parse the input
+        const { treeHash } = await params; // Got an error complaining about not awaiting for this, will look into it later
+        const hash = GetTreeByHashSchema.parse({ hash: treeHash });
 
         // Then get the most recently made node
         const node = await prisma.node.findFirst({
-            where: { tree: { hash: treeHash.hash } },
+            where: { tree: { hash: hash.hash } },
             orderBy: { createdAt: "desc" },
             take: 1,
         });

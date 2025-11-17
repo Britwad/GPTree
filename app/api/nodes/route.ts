@@ -54,7 +54,6 @@ export async function POST(request: NextRequest) {
     try {
         // First we parse the input
         const body = await request.json();
-        console.log("POST /api/nodes body:", body);
         const parsed = CreateNodeSchema.parse(body);
 
         // We'll put the stream in this variable later

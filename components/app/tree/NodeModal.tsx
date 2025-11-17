@@ -113,50 +113,88 @@ const NodeModal = ({
       style={customStyles}
       contentLabel={`Node: ${nodeQuestion}`}
       appElement={typeof window !== "undefined" ? document.body : undefined}
-    > 
-      {/* Close button - X icon in top right */}
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-        aria-label="Close modal"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+    >
+      <div className="flex flex-col h-full">
+        {/* Close button - X icon in top right */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+          aria-label="Close modal"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
 
-      <div className="flex flex-col gap-4">
-        {/* Node content display */}
-        {node && <div>
-          <h2 className="text-xl font-bold mb-2">{nodeQuestion}</h2>
-          {node.content && (
-            <div className="mb-2">
+        {/* Header */}
+        <div className="pb-4 border-b border-gray-200">
+          <h2 className="text-2xl font-bold">{nodeQuestion}</h2>
+        </div>
+
+        {/* Content area - scrollable */}
+        <div className="flex-1 overflow-auto py-4">
+          {/* Node content display */}
+          {node && node.content && (
+            <div className="mb-6">
               <MarkdownRenderer content={node.content} />
             </div>
           )}
-        </div>}
-        { streamingIsOpen && !node && streamingContent && (
-          <div>
-            <h2 className="text-xl font-bold mb-2">{nodeQuestion}</h2>
-            <div className="mb-2">
+          {streamingIsOpen && !node && streamingContent && (
+            <div className="mb-6">
               <MarkdownRenderer content={streamingContent || ""} />
             </div>
-          </div>
-        ) }
+          )}
 
-        {/* Input to create follow-up */}
-        <div className="flex gap-2 items-center">
+          {/* Pre-generated follow-ups */}
+          {node && node.followups && (
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Suggested Follow-ups</h3>
+              <div className="flex flex-col gap-2">
+                {node.followups.map((question, i) => (
+                  <button
+                    key={i}
+                    onClick={() => onSubmit(question)}
+                    disabled={isLoading}
+                    className="w-full text-left px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {question}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {streamingIsOpen && !node && streamingFollowups && streamingFollowups.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Suggested Follow-ups</h3>
+              <div className="flex flex-col gap-2">
+                {streamingFollowups.map((question, i) => (
+                  <button
+                    key={i}
+                    onClick={() => onSubmit(question)}
+                    disabled={isLoading}
+                    className="w-full text-left px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {question}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer - Input to create follow-up */}
+        <div className="pt-4 border-t border-gray-200 flex gap-2 items-center">
           <input
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
@@ -173,41 +211,6 @@ const NodeModal = ({
             {isLoading ? "Creating..." : "Add"}
           </button>
         </div>
-
-        {/* Pre-generated follow-ups */}
-        { node && node.followups && (
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Suggested Follow-ups</h3>
-            <div className="flex flex-col gap-2">
-              {node.followups.map((question, i) => (
-                <button
-                  key={i}
-                  onClick={() => onSubmit(question)}
-                  disabled={isLoading}
-                  className="w-full text-left px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {question}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        { streamingIsOpen && !node && (
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Suggested Follow-ups</h3>
-            <div className="flex flex-col gap-2">
-              {streamingFollowups && streamingFollowups.map((question, i) => (
-                <button
-                  key={i}
-                  onClick={() => onSubmit(question)}
-                  disabled={isLoading}
-                  className="w-full text-left px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                  {question}
-                </button>
-              ))}
-            </div>
-          </div>
-          )}
       </div>
     </Modal>
   );

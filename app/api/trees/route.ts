@@ -10,7 +10,6 @@ import {
     type CreatedFlashcard,
     CreateNode,
     InitTreeSchema,
-    CreateOrInitTreeSchema
 } from "@/lib/validation_schemas";
 import {
     getGroqResponse,
@@ -26,43 +25,15 @@ export async function POST(request: NextRequest) {
         // Read and parse the request
         // We have to use SafeParse to check if we are initializing or creating with prompt
         const body = await request.json();
-        const data_check = CreateOrInitTreeSchema.safeParse(body);
-        if (!data_check.success) {
-            throw data_check.error;
-        }
+        const data = InitTreeSchema.parse(body);
 
-        if (!("prompt" in data_check.data)) {
-            // It's an init request
-            const data = InitTreeSchema.parse(body);
+        // Create the tree
+        const created_tree = await prisma.tree.create({
+            data
+        });
 
-            // Create the tree
-            const created_tree = await prisma.tree.create({
-                data: {
-                    name: data.name,
-                    userId: data.userId,
-                }
-            });
-
-            // Now we just return it
-            return NextResponse.json(created_tree, { status: 201 });
-        }
-        
-        // Otherwise it must be a create with prompt request
-        const data = CreateTreeSchema.parse(body);
-
-        // Get the stream for the node generation
-        const rootBody: CreateNode = {
-            question: data.prompt,
-            userId: data.userId,
-            treeId: 0xDEADBEEF, // Come back to this later, I need to go eat food
-            parentId: null,
-        };
-        const nodeStream = await generateNodeStream(
-            data.prompt,
-            rootBody
-        );
-
-        return new NextResponse(nodeStream, { status: 201 });
+        // Now we just return it
+        return NextResponse.json(created_tree, { status: 201 });
     } catch (err) {
         console.error("Error creating tree:", err);
         // If the error was in parsing, it's the client's fault: return 400

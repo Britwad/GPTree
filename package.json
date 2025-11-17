@@ -16,6 +16,8 @@
     "@auth/prisma-adapter": "^2.11.0",
     "@prisma/client": "^6.18.0",
     "@prisma/extension-accelerate": "^2.0.2",
+    "@streamparser/json-node": "^0.0.22",
+    "@streamparser/json-whatwg": "^0.0.22",
     "@types/jest": "^30.0.0",
     "@types/react-modal": "^3.16.3",
     "@xyflow/react": "^12.9.1",

@@ -3,31 +3,7 @@ import prisma from "@/lib/prisma";
 import { Prisma } from "@/app/generated/prisma";
 import { z } from "zod";
 import { CreateNodeSchema, GetNodesSchema, StructuredNodeSchema, CreatedFlashcard, CreateNode } from "@/lib/validation_schemas";
-import { getGroqResponse, nodeSystemPrompt, parseStructuredNode, generateFlashcards, generateNodeStream } from "@/backend_helpers/groq_helpers";
-import { id } from "zod/locales";
-
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-
-async function callGroqChat(messages: Array<{ role: string; content: string }>, model = 'compound-beta') {
-    if (!process.env.GROQ_API_KEY) {
-        throw new Error("GROQ_API_KEY is not set");
-    }
-
-    const resp = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-        },
-        body: JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 500 }),
-    });
-    if (!resp.ok) {
-        throw new Error(`GROQ API error: ${resp.status} ${resp.statusText}`);
-    }
-    const json = await resp.json();
-    const content = json?.choices?.[0]?.message?.content ?? json?.choices?.[0]?.text;
-    return content as string;
-}
+import { generateNodeStream } from "@/backend_helpers/groq_helpers";
 
 export async function GET(request: NextRequest) {
     try {
@@ -68,43 +44,57 @@ export async function GET(request: NextRequest) {
     }
 }
 
+/**
+ * This route creates a new node in a tree, streaming the content as it is generated.
+ * @param request a request for this route that has the data for a {@link CreateNode}
+ * @returns a NextResponse with 201 status and a ReadableStream of the node content on success,
+ * or an error message with appropriate status code on failure.
+ */
 export async function POST(request: NextRequest) {
     try {
         // First we parse the input
         const body = await request.json();
+        console.log("POST /api/nodes body:", body);
         const parsed = CreateNodeSchema.parse(body);
 
+        // We'll put the stream in this variable later
+        let nodeStream: ReadableStream<Uint8Array>;
+
         // Now we need to validate some things about the input:
+        if (parsed.parentId) {
+            // The parent must exist for non root nodes
+            const parent = await prisma.node.findUnique({ where: { id: parsed.parentId } });
+            if (!parent) {
+                return NextResponse.json({ error: "Parent node not found" }, { status: 404 });
+            }
 
-        // It must have a parentID
-        if (parsed.parentId === null) {
-            return NextResponse.json({ error: "parentId cannot be null for non-root nodes" }, { status: 400 });
+            // The user must own the tree that the parent belongs to
+            const userId = await prisma.tree.findUnique({ where: { id: parent.treeId }, select: { userId: true } });
+            if (!userId) return NextResponse.json({ error: "Tree not found" }, { status: 404 });
+            if (userId.userId !== parsed.userId) {
+                return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+            }
+            
+            // Now we can set up the call to get a stream from our LLM,
+            // which is simple if this isn't a root node
+            nodeStream = await generateNodeStream(
+                parsed.question,
+                parsed
+            );
+        } else {
+            // For root nodes, we need to verify that the user owns the tree
+            const tree_info = await prisma.tree.findUnique({ where: { id: parsed.treeId }, select: { userId: true, name: true } });
+            if (!tree_info) return NextResponse.json({ error: "Tree not found" }, { status: 404 });
+            if (tree_info.userId !== parsed.userId) {
+                return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+            }
+
+            // Now we can set up the call to get a stream from our LLM
+            nodeStream = await generateNodeStream(
+                tree_info.name,
+                parsed
+            );
         }
-
-        // The parent must exist
-        const parent = await prisma.node.findUnique({ where: { id: parsed.parentId } });
-        if (!parent) {
-            return NextResponse.json({ error: "Parent node not found" }, { status: 404 });
-        }
-
-        // The user must own the tree that the parent belongs to
-        const tree = await prisma.tree.findUnique({ where: { id: parent.treeId }, select: { userId: true } });
-        if (!tree) return NextResponse.json({ error: "Tree not found" }, { status: 404 });
-        if (tree.userId !== parsed.userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-        }
-
-        // Now we can set up the call to get a stream from our LLM
-        const nodeBody: CreateNode = {
-            question: parsed.question,
-            userId: parsed.userId,
-            treeId: parent.treeId,
-            parentId: parent.id,
-        };
-        const nodeStream = await generateNodeStream(
-            parsed.question,
-            nodeBody
-        );
 
         // Now we just pass that stream to the client
         return new NextResponse(nodeStream, { status: 201 });
@@ -112,7 +102,7 @@ export async function POST(request: NextRequest) {
         console.error("POST /api/node error", err);
 
         if (err instanceof z.ZodError) {
-            return NextResponse.json({ errors: err.flatten() }, { status: 400 });
+            return NextResponse.json({ errors: z.treeifyError(err) }, { status: 400 });
         }
 
         const detail = err instanceof Error ? err.message : "An unknown error occurred";

@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { mutate } from "swr";
+import { TreeSchema } from "@/lib/validation_schemas";
 
 export default function App() {
   const { data: session } = useSession();
@@ -17,9 +18,7 @@ export default function App() {
   // Submit prompt handler
   const onSubmit = async () => {
     setLoading(true);
-    // In order to stream from the backend, we have to get off this page,
-    // so we will omit the prompt which will just get us a tree hash
-    // without starting generation
+
     const res = await fetch("/api/trees", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -27,8 +26,9 @@ export default function App() {
     });
 
     const data = await res.json();
-    if (!res.ok) {
-      setError((data && data.error) || "Unknown error");
+    const tree = TreeSchema.safeParse(data);
+    if (!res.ok || !tree.success) {
+      setError((data && data.error) || (data && tree.error) || "Unknown error");
       setLoading(false);
       return;
     }
@@ -36,7 +36,8 @@ export default function App() {
     // Mutate the SWR cache to refresh the tree list in the sidebar
     mutate(`/api/trees?userId=${session?.user?.id}&limit=10&offset=0`);
 
-    router.push(`/tree/${data.tree.hash}`);
+    console.log("Created tree:", data);
+    router.push(`/tree/${data.hash}`);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {

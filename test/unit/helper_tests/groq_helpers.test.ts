@@ -3,10 +3,11 @@ import { getGroqResponse, type Message } from "@/backend_helpers/groq_helpers";
 describe("getGroqResponse", () => {
     test("Gives back a response on valid input", async () => {
         const messages: Message[] = [
-            { role: "user", content: "Hello, Groq! This is a test for streaming a response!" }
+            { role: "user", content: "Hello, Groq! This is a test for getting a response from an API call" }
         ];
         // Get the stream from the helper
-        const stream = await getGroqResponse(messages);
+        const stream = await getGroqResponse(messages, {question: "This is a test for streaming a response!", 
+            userId: "testUserId", treeId: 1, parentId: null});
         expect(stream).toBeInstanceOf(ReadableStream);
 
         // Read from the stream
@@ -22,6 +23,7 @@ describe("getGroqResponse", () => {
             result += chunk;
         }
         expect(result.length).toBeGreaterThan(0);
+        console.log("Full response:", result);
         // Optionally log the result for manual inspection
         // console.log("Full response:", result);
     });

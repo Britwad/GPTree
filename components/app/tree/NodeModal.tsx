@@ -38,20 +38,33 @@ const NodeModal = ({
   node,
   onClose,
   onNewNode,
+  streamingQuestion,
+  streamingContent,
+  streamingFollowups,
+  streamingIsOpen
 }: {
   isOpen?: boolean;
-  node: Node;
+  node: Node | null;
   onClose: () => void;
   onNewNode?: (newNode: Node) => void;
+  streamingQuestion?: string;
+  streamingContent?: string;
+  streamingFollowups?: string[];
+  streamingIsOpen?: boolean;
 }) => {
   const { data: session } = useSession();
   const [prompt, setPrompt] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  if (!node) return null;
+  const nodeQuestion = streamingIsOpen ? streamingQuestion || "" : node?.question || "";
 
   const onSubmit = async (overridePrompt?: string) => {
     const promptToUse = overridePrompt || prompt;
+    if (!node) {
+      alert("No node selected (How did you get here?)");
+      return;
+    }
+
     if (!promptToUse.trim()) {
       alert("Question cannot be empty");
       return;
@@ -104,14 +117,12 @@ const NodeModal = ({
     }
   };
 
-  console.log(node.content);
-
   return (
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
       style={customStyles}
-      contentLabel={`Node: ${node.question}`}
+      contentLabel={`Node: ${nodeQuestion}`}
       appElement={typeof window !== "undefined" ? document.body : undefined}
     > 
       {/* Close button - X icon in top right */}
@@ -138,14 +149,22 @@ const NodeModal = ({
 
       <div className="flex flex-col gap-4">
         {/* Node content display */}
-        <div>
-          <h2 className="text-xl font-bold mb-2">{node.question}</h2>
+        {node && <div>
+          <h2 className="text-xl font-bold mb-2">{nodeQuestion}</h2>
           {node.content && (
             <div className="mb-2">
               <MarkdownRenderer content={node.content} />
             </div>
           )}
-        </div>
+        </div>}
+        { streamingIsOpen && (
+          <div>
+            <h2 className="text-xl font-bold mb-2">{nodeQuestion}</h2>
+            <div className="mb-2">
+              <MarkdownRenderer content={streamingContent || ""} />
+            </div>
+          </div>
+        ) }
 
         {/* Input to create follow-up */}
         <div className="flex gap-2 items-center">
@@ -167,7 +186,7 @@ const NodeModal = ({
         </div>
 
         {/* Pre-generated follow-ups */}
-        {node.followups.length > 0 && (
+        {node && node.followups && (
           <div>
             <h3 className="text-lg font-semibold mb-2">Suggested Follow-ups</h3>
             <div className="flex flex-col gap-2">
@@ -184,6 +203,23 @@ const NodeModal = ({
             </div>
           </div>
         )}
+        { streamingIsOpen && (
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Suggested Follow-ups</h3>
+            <div className="flex flex-col gap-2">
+              {streamingFollowups?.map((question, i) => (
+                <button
+                  key={i}
+                  onClick={() => onSubmit(question)}
+                  disabled={isLoading}
+                  className="w-full text-left px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {question}
+                </button>
+              ))}
+            </div>
+          </div>
+          )}
       </div>
     </Modal>
   );

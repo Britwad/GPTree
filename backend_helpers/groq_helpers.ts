@@ -166,6 +166,26 @@ export function parseStructuredNode(content: string): StructuredNode {
     return r.data;
 }
 
+// Note for the future: Implement jsdoc comments for all functions
+/** This function wraps our general response helper gives back a stream
+ *  for the conent of a new node
+ * @param prompt The prompt to send to the LLM
+ * @param params The parameters for creating the node (See {@link CreateNode } type)
+ * @returns A ReadableStream that streams the LLM response
+*/
+export async function generateNodeStream(prompt: string, params: CreateNode) {
+
+    // Generate content for the root node based on the prompt
+    // We're streaming to the backend right now but eventually
+    // we will stream to the client
+    const stream = await getGroqResponse([
+        { role: "system", content: nodeSystemPrompt },
+        { role: "user", content: `I want to learn about: ${prompt}.` }
+    ], params);
+
+    return stream;
+}
+
 export const groqNodeResponseStructure = {
   type: "json_schema",
   json_schema: {
@@ -237,18 +257,3 @@ Example (clarify):
   ]
 }
 `;
-
-
-export async function generateNodeStream(prompt: string, params: CreateNode) {
-
-    // Generate content for the root node based on the prompt
-    // We're streaming to the backend right now but eventually
-    // we will stream to the client
-    const stream = await getGroqResponse([
-        { role: "system", content: nodeSystemPrompt },
-        { role: "user", content: `I want to learn about: ${prompt}.` }
-    ], params);
-
-    return stream;
-}
-

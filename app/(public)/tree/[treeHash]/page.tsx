@@ -224,7 +224,7 @@ export default function App() {
 
           // We need to set up a JSON parser to handle the streaming response
           const stream = await generateNode(body);
-          const parser = new JSONParser();
+          const parser = new JSONParser({emitPartialValues: true, emitPartialTokens: true});
           const reader = stream.body?.pipeThrough(parser).getReader();
           if (!reader) {
             throw new Error('Failed to get reader for root node stream');
@@ -364,7 +364,8 @@ export default function App() {
       if (done) {
         break;
       };
-      
+      console.log("Received chunk:", value);
+
       setStreamingNode(prev => {
         // Make sure the key is valid
         if (!value.key || !prev) return prev;

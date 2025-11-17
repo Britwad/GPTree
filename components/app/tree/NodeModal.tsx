@@ -146,7 +146,7 @@ const NodeModal = ({
             </div>
           )}
         </div>}
-        { streamingIsOpen && !node && (
+        { streamingIsOpen && !node && streamingContent && (
           <div>
             <h2 className="text-xl font-bold mb-2">{nodeQuestion}</h2>
             <div className="mb-2">

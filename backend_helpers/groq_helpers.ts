@@ -93,7 +93,6 @@ export async function getGroqResponse(messages: Message[], params: CreateNode) {
         // We need a way to store the LLM output in our database as it streams
         // so we will hold it in this variable and append to it as we go
         let fullResponse = "";
-
         // Now we want to make a readable stream to return
         return new ReadableStream({
             async start(controller) {

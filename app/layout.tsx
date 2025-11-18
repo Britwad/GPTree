@@ -26,7 +26,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "GPTree",
   description: "Learn anything, one branch at a time.",
-}
+};
 
 export default function RootLayout({
   children,
@@ -35,7 +35,7 @@ export default function RootLayout({
 }>) {
   
   return (
-    <html lang="en">
+    <html lang="en" className="light">
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
         style={{ fontFamily: colors.font }}

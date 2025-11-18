@@ -8,7 +8,7 @@ import rehypeRaw from "rehype-raw";
 import rehypeHighlight from "rehype-highlight";
 
 import "katex/dist/katex.min.css";
-import "highlight.js/styles/github-dark.css";
+import "highlight.js/styles/github.css";
 
 import { sanitizeMarkdown } from "@/helpers/markdown";
 import { colors } from "@/lib/colors";
@@ -19,7 +19,7 @@ interface MarkdownRendererProps {
 
 const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
   return (
-    <div className="prose prose-lg max-w-none dark:prose-invert">
+    <div className="prose prose-lg max-w-none">
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex, rehypeRaw, rehypeHighlight]}
@@ -85,7 +85,10 @@ const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
           },
           ol({ children, ...props }: any) {
             return (
-              <ol className="list-decimal list-inside mb-4 space-y-2" {...props}>
+              <ol
+                className="list-decimal list-inside mb-4 space-y-2"
+                {...props}
+              >
                 {children}
               </ol>
             );

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import * as React from "react";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Tree, Flashcard, AppState } from "@/lib/App";
+import { colors } from "@/lib/colors";
 
 // Utility function for className merging
 function cn(...inputs: (string | undefined | null | boolean | Record<string, boolean>)[]): string {
@@ -35,18 +36,38 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         className={cn(
           "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-          variant === "default" && "bg-green-600 text-white hover:bg-green-700",
+          variant === "default" && `text-white hover:opacity-90`,
           variant === "destructive" && "bg-red-600 text-white hover:bg-red-700",
-          variant === "outline" && "border border-gray-300 bg-white hover:bg-gray-50 text-gray-900",
+          variant === "outline" && "border",
           variant === "secondary" && "bg-gray-100 text-gray-900 hover:bg-gray-200",
-          variant === "ghost" && "hover:bg-gray-100 text-gray-700",
-          variant === "link" && "text-green-600 underline-offset-4 hover:underline",
+          variant === "ghost" && "hover:bg-gray-100",
+          variant === "link" && "underline-offset-4 hover:underline",
           size === "default" && "h-10 px-4 py-2",
           size === "sm" && "h-9 rounded-md px-3",
           size === "lg" && "h-11 rounded-md px-8",
           size === "icon" && "h-10 w-10",
           className
         )}
+        style={{
+          ...(variant === "default" ? { backgroundColor: colors.green } : {}),
+          ...(variant === "outline" ? { borderColor: colors.lightGray, color: colors.darkGray } : {}),
+          ...(variant === "ghost" ? { color: colors.darkGray } : {}),
+          ...(variant === "link" ? { color: colors.green } : {}),
+        }}
+        onMouseEnter={(e) => {
+          if (variant === "default") {
+            e.currentTarget.style.backgroundColor = colors.darkGreen;
+          } else if (variant === "outline") {
+            e.currentTarget.style.backgroundColor = colors.superLightGreen;
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (variant === "default") {
+            e.currentTarget.style.backgroundColor = colors.green;
+          } else if (variant === "outline") {
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }
+        }}
         ref={ref}
         {...props}
       />
@@ -63,9 +84,10 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-lg border border-gray-200 bg-white text-gray-900 shadow-sm",
+      "rounded-lg border shadow-sm",
       className
     )}
+    style={{ borderColor: colors.lightGray, backgroundColor: colors.white }}
     {...props}
   />
 ));
@@ -87,9 +109,10 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
       <input
         type="checkbox"
         className={cn(
-          "h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2",
+          "h-4 w-4 rounded border focus:ring-2 focus:ring-offset-2",
           className
         )}
+        style={{ borderColor: colors.lightGray, accentColor: colors.green }}
         ref={ref}
         checked={checked}
         onChange={handleChange}
@@ -112,12 +135,16 @@ const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
         ref={ref}
         className={cn(
           "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none",
-          variant === "default" && "border-transparent bg-green-600 text-white hover:bg-green-700",
-          variant === "secondary" && "border-transparent bg-gray-100 text-gray-900 hover:bg-gray-200",
+          variant === "default" && "text-white",
+          variant === "secondary" && "hover:bg-gray-200",
           variant === "destructive" && "border-transparent bg-red-600 text-white hover:bg-red-700",
-          variant === "outline" && "border-gray-300 text-gray-900",
           className
         )}
+        style={{
+          ...(variant === "default" ? { backgroundColor: colors.green, borderColor: colors.green } : {}),
+          ...(variant === "secondary" ? { backgroundColor: colors.lightGray, color: colors.darkGray } : {}),
+          ...(variant === "outline" ? { borderColor: colors.lightGray, color: colors.darkGray } : {}),
+        }}
         {...props}
       />
     );
@@ -139,14 +166,15 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
       <div
         ref={ref}
         className={cn(
-          "relative h-4 w-full overflow-hidden rounded-full bg-gray-200",
+          "relative h-4 w-full overflow-hidden rounded-full",
           className
         )}
+        style={{ backgroundColor: colors.lightGray }}
         {...props}
       >
         <div
-          className="h-full w-full flex-1 bg-green-600 transition-all"
-          style={{ transform: `translateX(-${100 - percentage}%)` }}
+          className="h-full w-full flex-1 transition-all"
+          style={{ backgroundColor: colors.green, transform: `translateX(-${100 - percentage}%)` }}
         />
       </div>
     );
@@ -162,9 +190,11 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <textarea
         className={cn(
-          "flex min-h-[80px] w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+          "flex min-h-[80px] w-full rounded-md border bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
           className
         )}
+        style={{ borderColor: colors.lightGray, color: colors.darkGray }}
+        placeholder="Type your answer here before revealing..."
         ref={ref}
         {...props}
       />
@@ -354,9 +384,9 @@ export default function StudyPage({
     const totalCards = treeStats.reduce((sum, tree) => sum + tree.flashcardCount, 0);
 
     return (
-      <div className="min-h-screen bg-white">
+      <div style={{ backgroundColor: colors.superLightGreen, minHeight: '100vh' }}>
         {/* Header */}
-        <header className="border-b bg-white sticky top-0 z-10">
+        <header className="sticky top-0 z-10" style={{ backgroundColor: colors.white, borderBottomColor: colors.borderGreen, borderBottomWidth: '2px' }}>
           <div className="container mx-auto px-6 py-4">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="sm" onClick={() => onNavigate("landing")}>
@@ -364,7 +394,7 @@ export default function StudyPage({
                 Back
               </Button>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl text-gray-900">Spaced Repetition Study</h1>
+                <h1 className="text-xl" style={{ color: colors.darkGray }}>Spaced Repetition Study</h1>
               </div>
             </div>
           </div>
@@ -373,8 +403,8 @@ export default function StudyPage({
         <main className="container mx-auto px-6 py-12 max-w-5xl">
           {/* Hero Section */}
           <div className="mb-12 text-center">
-            <h2 className="text-4xl mb-4 text-gray-900">Review Your Flashcards</h2>
-            <p className="text-gray-600 text-lg">
+            <h2 className="text-4xl mb-4" style={{ color: colors.darkGray }}>Review Your Flashcards</h2>
+            <p className="text-lg" style={{ color: colors.darkGray }}>
               Select which topics you want to study using proven spaced repetition techniques.
             </p>
           </div>
@@ -384,8 +414,8 @@ export default function StudyPage({
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-2">
                 <div>
-                  <p className="text-sm text-gray-600">Total Cards</p>
-                  <p className="text-2xl text-gray-900">{totalCards}</p>
+                  <p className="text-sm" style={{ color: colors.darkGray }}>Total Cards</p>
+                  <p className="text-2xl" style={{ color: colors.darkGray }}>{totalCards}</p>
                 </div>
               </div>
             </Card>
@@ -393,8 +423,8 @@ export default function StudyPage({
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-2">
                 <div>
-                  <p className="text-sm text-gray-600">Trees</p>
-                  <p className="text-2xl text-gray-900">{trees.length}</p>
+                  <p className="text-sm" style={{ color: colors.darkGray }}>Trees</p>
+                  <p className="text-2xl" style={{ color: colors.darkGray }}>{trees.length}</p>
                 </div>
               </div>
             </Card>
@@ -403,8 +433,8 @@ export default function StudyPage({
           {/* Tree Selection */}
           {treeStats.length === 0 ? (
             <Card className="p-12 text-center">
-              <h3 className="text-xl mb-2 text-gray-900">No Trees Yet</h3>
-              <p className="text-gray-500 mb-6">
+              <h3 className="text-xl mb-2" style={{ color: colors.darkGray }}>No Trees Yet</h3>
+              <p className="mb-6" style={{ color: colors.darkGray }}>
                 Create your first learning tree to start generating flashcards.
               </p>
               <Button onClick={() => onNavigate("dashboard")}>
@@ -413,12 +443,15 @@ export default function StudyPage({
             </Card>
           ) : (
             <Card className="p-6 mb-6">
-              <h3 className="text-xl mb-4 text-gray-900">Select Topics to Study</h3>
+              <h3 className="text-xl mb-4" style={{ color: colors.darkGray }}>Select Topics to Study</h3>
               <div className="space-y-3">
                 {treeStats.map((tree) => (
                 <div
                   key={tree.id}
-                  className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 border border-gray-100 transition-colors"
+                  className="flex items-center justify-between p-4 rounded-lg transition-colors"
+                  style={{ borderColor: colors.lightGray, borderWidth: '1px' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.superLightGreen}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
                   <div className="flex items-center gap-3">
                     <Checkbox
@@ -430,8 +463,8 @@ export default function StudyPage({
                       htmlFor={`tree-${tree.id}`}
                       className="cursor-pointer flex-1"
                     >
-                      <p className="font-medium">{tree.name}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="font-medium" style={{ color: colors.darkGray }}>{tree.name}</p>
+                      <p className="text-sm" style={{ color: colors.darkGray }}>
                         {tree.flashcardCount} cards total
                       </p>
                     </label>
@@ -447,10 +480,10 @@ export default function StudyPage({
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xl mb-1 text-gray-900">
+                <p className="text-xl mb-1" style={{ color: colors.darkGray }}>
                   {availableFlashcards.length} cards available
                 </p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm" style={{ color: colors.darkGray }}>
                   From {selectedTreeIds.length} selected{" "}
                   {selectedTreeIds.length === 1 ? "topic" : "topics"}
                 </p>
@@ -468,9 +501,9 @@ export default function StudyPage({
 
           {/* Help Text */}
           {treeStats.length > 0 && (
-          <div className="mt-8 p-4 border rounded-lg">
-            <h4 className="font-medium mb-2 text-gray-900">How it works</h4>
-            <p className="text-sm text-gray-600">
+          <div className="mt-8 p-4 rounded-lg" style={{ borderColor: colors.lightGray, borderWidth: '1px' }}>
+            <h4 className="font-medium mb-2" style={{ color: colors.darkGray }}>How it works</h4>
+            <p className="text-sm" style={{ color: colors.darkGray }}>
               Spaced repetition shows you cards at optimal intervals. Cards you find
               hard appear more frequently, while easy cards appear less often. This
               scientifically-proven method helps you remember information long-term.
@@ -493,33 +526,33 @@ export default function StudyPage({
         : 0;
 
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="flex items-center justify-center p-4" style={{ backgroundColor: colors.superLightGreen, minHeight: '100vh' }}>
         <Card className="p-12 text-center max-w-lg w-full">
-          <h2 className="text-3xl mb-2 text-gray-900">Session Complete!</h2>
-          <p className="text-gray-600 mb-8">
+          <h2 className="text-3xl mb-2" style={{ color: colors.darkGray }}>Session Complete!</h2>
+          <p className="mb-8" style={{ color: colors.darkGray }}>
             You've reviewed {reviewedCount} cards. Great work!
           </p>
 
           {/* Session Stats */}
           <div className="grid grid-cols-3 gap-4 mb-8">
-            <div className="p-4 border rounded-lg">
-              <div className="text-2xl mb-1 text-gray-900">{sessionStats.hard}</div>
-              <div className="text-sm text-gray-600">Hard</div>
+            <div className="p-4 rounded-lg" style={{ borderColor: colors.lightGray, borderWidth: '1px' }}>
+              <div className="text-2xl mb-1" style={{ color: colors.darkGray }}>{sessionStats.hard}</div>
+              <div className="text-sm" style={{ color: colors.darkGray }}>Hard</div>
             </div>
-            <div className="p-4 border rounded-lg">
-              <div className="text-2xl mb-1 text-gray-900">{sessionStats.good}</div>
-              <div className="text-sm text-gray-600">Good</div>
+            <div className="p-4 rounded-lg" style={{ borderColor: colors.lightGray, borderWidth: '1px' }}>
+              <div className="text-2xl mb-1" style={{ color: colors.darkGray }}>{sessionStats.good}</div>
+              <div className="text-sm" style={{ color: colors.darkGray }}>Good</div>
             </div>
-            <div className="p-4 border rounded-lg">
-              <div className="text-2xl mb-1 text-gray-900">{sessionStats.easy}</div>
-              <div className="text-sm text-gray-600">Easy</div>
+            <div className="p-4 rounded-lg" style={{ borderColor: colors.lightGray, borderWidth: '1px' }}>
+              <div className="text-2xl mb-1" style={{ color: colors.darkGray }}>{sessionStats.easy}</div>
+              <div className="text-sm" style={{ color: colors.darkGray }}>Easy</div>
             </div>
           </div>
 
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Retention Score</span>
-              <span className="font-medium">{accuracyScore}%</span>
+              <span className="text-sm" style={{ color: colors.darkGray }}>Retention Score</span>
+              <span className="font-medium" style={{ color: colors.darkGray }}>{accuracyScore}%</span>
             </div>
             <Progress value={accuracyScore} className="h-2" />
           </div>
@@ -538,9 +571,9 @@ export default function StudyPage({
   const currentTree = trees.find((t) => t.id === currentCard.treeId);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div style={{ backgroundColor: colors.superLightGreen, minHeight: '100vh' }}>
       {/* Header */}
-      <header className="border-b bg-white sticky top-0 z-10">
+      <header className="sticky top-0 z-10" style={{ backgroundColor: colors.white, borderBottomColor: colors.borderGreen, borderBottomWidth: '2px' }}>
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-4">
@@ -554,8 +587,8 @@ export default function StudyPage({
               </Button>
               <div className="flex items-center gap-2">
                 <div>
-                  <p className="font-medium text-gray-900">{currentTree?.name || "Study Session"}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="font-medium" style={{ color: colors.darkGray }}>{currentTree?.name || "Study Session"}</p>
+                  <p className="text-xs" style={{ color: colors.darkGray }}>
                     Card {currentCardIndex + 1} of {availableFlashcards.length}
                   </p>
                 </div>
@@ -584,19 +617,19 @@ export default function StudyPage({
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 max-w-4xl">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="rounded-2xl shadow-lg overflow-hidden" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
           {/* Question Section */}
-          <div className="p-8 border-b">
-            <p className="text-sm uppercase tracking-wide text-gray-600 mb-4">
+          <div className="p-8" style={{ borderBottomColor: colors.lightGray, borderBottomWidth: '1px' }}>
+            <p className="text-sm uppercase tracking-wide mb-4" style={{ color: colors.darkGray }}>
               Concept Question
             </p>
-            <div className="rounded-xl p-6 border">
-              <p className="text-xl leading-relaxed text-gray-900">{currentCard.front}</p>
+            <div className="rounded-xl p-6" style={{ borderColor: colors.lightGray, borderWidth: '1px' }}>
+              <p className="text-xl leading-relaxed" style={{ color: colors.darkGray }}>{currentCard.front}</p>
             </div>
           </div>
 
           {/* Navigation Controls */}
-          <div className="px-8 py-4 bg-gray-50 border-b flex items-center justify-between">
+          <div className="px-8 py-4 flex items-center justify-between" style={{ backgroundColor: colors.superLightGreen, borderBottomColor: colors.lightGray, borderBottomWidth: '1px' }}>
             <Button
               variant="outline"
               size="sm"
@@ -611,17 +644,14 @@ export default function StudyPage({
               {availableFlashcards.slice(0, 10).map((_, index) => (
                 <div
                   key={index}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    index === currentCardIndex
-                      ? "bg-emerald-600"
-                      : index < currentCardIndex
-                      ? "bg-gray-400"
-                      : "bg-gray-200"
-                  }`}
+                  className="w-2 h-2 rounded-full transition-colors"
+                  style={{
+                    backgroundColor: index === currentCardIndex ? colors.green : index < currentCardIndex ? colors.lightGray : colors.lightGray
+                  }}
                 />
               ))}
               {availableFlashcards.length > 10 && (
-                <span className="text-xs text-gray-500 ml-2">
+                <span className="text-xs ml-2" style={{ color: colors.darkGray }}>
                   +{availableFlashcards.length - 10}
                 </span>
               )}
@@ -643,7 +673,7 @@ export default function StudyPage({
             {!showAnswer ? (
               <div className="space-y-6">
                 <div>
-                  <label className="text-sm text-gray-600 mb-2 block">
+                  <label className="text-sm mb-2 block" style={{ color: colors.darkGray }}>
                     Your Answer (Optional - helps with active recall)
                   </label>
                   <Textarea
@@ -665,27 +695,27 @@ export default function StudyPage({
               <div className="space-y-6">
                 {/* Correct Answer */}
                 <div>
-                  <p className="text-sm uppercase tracking-wide text-gray-600 mb-4">
+                  <p className="text-sm uppercase tracking-wide mb-4" style={{ color: colors.darkGray }}>
                     Correct Answer
                   </p>
-                  <div className="rounded-xl p-6 border">
-                    <p className="text-xl leading-relaxed text-gray-900">{currentCard.back}</p>
+                  <div className="rounded-xl p-6" style={{ borderColor: colors.lightGray, borderWidth: '1px' }}>
+                    <p className="text-xl leading-relaxed" style={{ color: colors.darkGray }}>{currentCard.back}</p>
                   </div>
                 </div>
 
                 {/* User's Answer Comparison */}
                 {userAnswer && (
                   <div>
-                    <p className="text-sm text-gray-600 mb-2">Your answer:</p>
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                      <p className="text-gray-700 whitespace-pre-wrap">{userAnswer}</p>
+                    <p className="text-sm mb-2" style={{ color: colors.darkGray }}>Your answer:</p>
+                    <div className="rounded-lg p-4" style={{ backgroundColor: colors.superLightGreen, borderColor: colors.lightGray, borderWidth: '1px' }}>
+                      <p className="whitespace-pre-wrap" style={{ color: colors.darkGray }}>{userAnswer}</p>
                     </div>
                   </div>
                 )}
 
                 {/* Confidence Level Rating */}
                 <div>
-                  <p className="text-lg font-semibold text-gray-900 mb-4">
+                  <p className="text-lg font-semibold mb-4" style={{ color: colors.darkGray }}>
                     RATE DIFFICULTY [CONFIDENCE]
                   </p>
                   <div className="mb-6">
@@ -697,7 +727,7 @@ export default function StudyPage({
                         <div className="h-full" style={{ width: '20%', backgroundColor: '#ea580c' }} />
                         <div className="h-full" style={{ width: '20%', backgroundColor: '#eab308' }} />
                         <div className="h-full" style={{ width: '20%', backgroundColor: '#84cc16' }} />
-                        <div className="h-full" style={{ width: '20%', backgroundColor: '#16a34a' }} />
+                        <div className="h-full" style={{ width: '20%', backgroundColor: colors.green }} />
                       </div>
                       {/* Slider with custom styling */}
                       <input
@@ -715,7 +745,7 @@ export default function StudyPage({
                       />
                     </div>
                     {/* Current confidence value display */}
-                    <div className="text-center text-3xl font-bold text-gray-900 mt-4">
+                    <div className="text-center text-3xl font-bold mt-4" style={{ color: colors.darkGray }}>
                       {confidenceLevel[0]}%
                     </div>
                   </div>
@@ -733,7 +763,7 @@ export default function StudyPage({
         </div>
 
         {/* Help Text */}
-        <div className="mt-6 text-center text-sm text-gray-500">
+        <div className="mt-6 text-center text-sm" style={{ color: colors.darkGray }}>
           <p>
             Rate honestly to optimize your learning. The SM-2 algorithm adjusts review
             intervals based on your confidence.

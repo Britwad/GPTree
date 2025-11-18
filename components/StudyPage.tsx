@@ -404,6 +404,9 @@ export default function StudyPage({
           setUserAnswer("");
           setCurrentCardIndex((prev) => prev + 1);
         }
+      } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        e.preventDefault();
+        setShowAnswer((prev) => !prev);
       }
     };
 
@@ -651,156 +654,136 @@ export default function StudyPage({
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 max-w-4xl">
-        <div className="rounded-2xl shadow-lg overflow-hidden" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
-          {/* Question Section */}
-          <div className="p-8" style={{ borderBottomColor: colors.lightGray, borderBottomWidth: '1px' }}>
-            <p className="text-sm uppercase tracking-wide mb-4" style={{ color: colors.darkGray }}>
-              Concept Question
+        {/* Quizlet-style Flashcard */}
+        <div className="mb-8">
+          <div 
+            className="flashcard-container relative h-[500px] cursor-pointer"
+            onClick={() => setShowAnswer(!showAnswer)}
+          >
+            <div className={`flashcard-inner ${showAnswer ? 'flipped' : ''}`}>
+              {/* Front of card - Question */}
+              <div className="flashcard-front rounded-xl shadow-lg" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
+                <div className="h-full flex items-center justify-center p-8">
+                  <p className="text-2xl text-center leading-relaxed" style={{ color: colors.darkGray }}>
+                    {currentCard.front}
+                  </p>
+                </div>
+              </div>
+
+              {/* Back of card - Answer */}
+              <div className="flashcard-back rounded-xl shadow-lg" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
+                <div className="h-full flex items-center justify-center p-8">
+                  <p className="text-2xl text-center leading-relaxed" style={{ color: colors.darkGray }}>
+                    {currentCard.back}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer with flip instruction */}
+          <div 
+            className="mt-4 py-4 px-6 rounded-lg text-center"
+            style={{ backgroundColor: colors.green }}
+          >
+            <p className="text-white text-sm flex items-center justify-center gap-2">
+              Click the card to flip
+              <span className="text-lg">👆</span>
             </p>
-            <div className="rounded-xl p-6" style={{ borderColor: colors.lightGray, borderWidth: '1px' }}>
-              <p className="text-xl leading-relaxed" style={{ color: colors.darkGray }}>{currentCard.front}</p>
-            </div>
-          </div>
-
-          {/* Navigation Controls */}
-          <div className="px-8 py-4 flex items-center justify-between" style={{ backgroundColor: colors.superLightGreen, borderBottomColor: colors.lightGray, borderBottomWidth: '1px' }}>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePreviousCard}
-              disabled={currentCardIndex === 0}
-              className="gap-2"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Previous
-            </Button>
-            <div className="flex gap-1.5">
-              {availableFlashcards.slice(0, 10).map((_, index) => (
-                <div
-                  key={index}
-                  className="w-2 h-2 rounded-full transition-colors"
-                  style={{
-                    backgroundColor: index === currentCardIndex ? colors.green : index < currentCardIndex ? colors.lightGray : colors.lightGray
-                  }}
-                />
-              ))}
-              {availableFlashcards.length > 10 && (
-                <span className="text-xs ml-2" style={{ color: colors.darkGray }}>
-                  +{availableFlashcards.length - 10}
-                </span>
-              )}
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNextCard}
-              disabled={currentCardIndex === availableFlashcards.length - 1}
-              className="gap-2"
-            >
-              Next
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-
-          {/* Answer Section */}
-          <div className="p-8">
-            {!showAnswer ? (
-              <div className="space-y-6">
-                <div>
-                  <label className="text-sm mb-2 block" style={{ color: colors.darkGray }}>
-                    Your Answer (Optional - helps with active recall)
-                  </label>
-                  <Textarea
-                    value={userAnswer}
-                    onChange={(e) => setUserAnswer(e.target.value)}
-                    placeholder="Type your answer here before revealing..."
-                    className="min-h-[140px] resize-none text-base"
-                  />
-                </div>
-                <Button
-                  onClick={() => setShowAnswer(true)}
-                  size="lg"
-                  className="w-full h-14"
-                >
-                  Show Answer
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {/* Correct Answer */}
-                <div>
-                  <p className="text-sm uppercase tracking-wide mb-4" style={{ color: colors.darkGray }}>
-                    Correct Answer
-                  </p>
-                  <div className="rounded-xl p-6" style={{ borderColor: colors.lightGray, borderWidth: '1px' }}>
-                    <p className="text-xl leading-relaxed" style={{ color: colors.darkGray }}>{currentCard.back}</p>
-                  </div>
-                </div>
-
-                {/* User's Answer Comparison */}
-                {userAnswer && (
-                  <div>
-                    <p className="text-sm mb-2" style={{ color: colors.darkGray }}>Your answer:</p>
-                    <div className="rounded-lg p-4" style={{ backgroundColor: colors.superLightGreen, borderColor: colors.lightGray, borderWidth: '1px' }}>
-                      <p className="whitespace-pre-wrap" style={{ color: colors.darkGray }}>{userAnswer}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Confidence Level Rating */}
-                <div>
-                  <p className="text-lg font-semibold mb-4" style={{ color: colors.darkGray }}>
-                    RATE DIFFICULTY [CONFIDENCE]
-                  </p>
-                  <div className="mb-6">
-                    {/* Gradient Confidence Bar Container */}
-                    <div className="relative h-16">
-                      {/* Gradient Bar Background */}
-                      <div className="absolute inset-0 flex w-full overflow-hidden rounded-lg">
-                        <div className="h-full" style={{ width: '20%', backgroundColor: '#dc2626' }} />
-                        <div className="h-full" style={{ width: '20%', backgroundColor: '#ea580c' }} />
-                        <div className="h-full" style={{ width: '20%', backgroundColor: '#eab308' }} />
-                        <div className="h-full" style={{ width: '20%', backgroundColor: '#84cc16' }} />
-                        <div className="h-full" style={{ width: '20%', backgroundColor: colors.green }} />
-                      </div>
-                      {/* Slider with custom styling */}
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        step="1"
-                        value={confidenceLevel[0]}
-                        onChange={(e) => setConfidenceLevel([parseInt(e.target.value)])}
-                        className="w-full h-16 bg-transparent appearance-none cursor-pointer absolute top-0 left-0 z-10"
-                        style={{
-                          WebkitAppearance: 'none',
-                          background: 'transparent',
-                        }}
-                      />
-                    </div>
-                    {/* Current confidence value display */}
-                    <div className="text-center text-3xl font-bold mt-4" style={{ color: colors.darkGray }}>
-                      {confidenceLevel[0]}%
-                    </div>
-                  </div>
-                  <Button
-                    onClick={handleConfidenceSubmit}
-                    size="lg"
-                    className="w-full"
-                  >
-                    Continue
-                  </Button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
+
+        {/* Navigation Controls */}
+        <div className="flex items-center justify-between mb-6">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePreviousCard}
+            disabled={currentCardIndex === 0}
+            className="gap-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Previous
+          </Button>
+          <div className="flex gap-1.5">
+            {availableFlashcards.slice(0, 10).map((_, index) => (
+              <div
+                key={index}
+                className="w-2 h-2 rounded-full transition-colors"
+                style={{
+                  backgroundColor: index === currentCardIndex ? colors.green : colors.lightGray
+                }}
+              />
+            ))}
+            {availableFlashcards.length > 10 && (
+              <span className="text-xs ml-2" style={{ color: colors.darkGray }}>
+                +{availableFlashcards.length - 10}
+              </span>
+            )}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNextCard}
+            disabled={currentCardIndex === availableFlashcards.length - 1}
+            className="gap-2"
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Confidence Level Rating - Only show when answer is revealed */}
+        {showAnswer && (
+          <div className="mt-8 p-6 rounded-xl" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
+            <p className="text-lg font-semibold mb-4 text-center" style={{ color: colors.darkGray }}>
+              RATE DIFFICULTY [CONFIDENCE]
+            </p>
+            <div className="mb-6">
+              {/* Gradient Confidence Bar Container */}
+              <div className="relative h-16">
+                {/* Gradient Bar Background */}
+                <div className="absolute inset-0 flex w-full overflow-hidden rounded-lg">
+                  <div className="h-full" style={{ width: '20%', backgroundColor: '#dc2626' }} />
+                  <div className="h-full" style={{ width: '20%', backgroundColor: '#ea580c' }} />
+                  <div className="h-full" style={{ width: '20%', backgroundColor: '#eab308' }} />
+                  <div className="h-full" style={{ width: '20%', backgroundColor: '#84cc16' }} />
+                  <div className="h-full" style={{ width: '20%', backgroundColor: colors.green }} />
+                </div>
+                {/* Slider with custom styling */}
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value={confidenceLevel[0]}
+                  onChange={(e) => setConfidenceLevel([parseInt(e.target.value)])}
+                  className="w-full h-16 bg-transparent appearance-none cursor-pointer absolute top-0 left-0 z-10"
+                  style={{
+                    WebkitAppearance: 'none',
+                    background: 'transparent',
+                  }}
+                />
+              </div>
+              {/* Current confidence value display */}
+              <div className="text-center text-3xl font-bold mt-4" style={{ color: colors.darkGray }}>
+                {confidenceLevel[0]}%
+              </div>
+            </div>
+            <Button
+              onClick={handleConfidenceSubmit}
+              size="lg"
+              className="w-full"
+            >
+              Continue
+            </Button>
+          </div>
+        )}
 
         {/* Help Text */}
         <div className="mt-6 text-center text-sm" style={{ color: colors.darkGray }}>
           <p>
-            Rate honestly to optimize your learning. The SM-2 algorithm adjusts review
-            intervals based on your confidence.
+            Use ← → arrow keys to navigate, ↑ ↓ to flip. Rate honestly to optimize your learning.
           </p>
         </div>
       </main>

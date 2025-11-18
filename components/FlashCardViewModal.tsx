@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import * as React from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Flashcard } from "@/lib/App";
+import { colors } from "@/lib/colors";
 
 // Utility function for className merging
 function cn(...inputs: (string | undefined | null | boolean | Record<string, boolean>)[]): string {
@@ -101,6 +102,12 @@ export default function FlashcardViewModal({
   // Add keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle arrow keys if not typing in an input/textarea
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+        return;
+      }
+
       if (e.key === "ArrowLeft") {
         e.preventDefault();
         setIsFlipped(false);
@@ -109,6 +116,9 @@ export default function FlashcardViewModal({
         e.preventDefault();
         setIsFlipped(false);
         setCurrentIndex((prev) => (prev + 1) % flashcards.length);
+      } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        e.preventDefault();
+        setIsFlipped((prev) => !prev);
       }
     };
 
@@ -120,12 +130,12 @@ export default function FlashcardViewModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full p-8">
+      <div className="bg-white rounded-2xl max-w-2xl w-full p-8" style={{ backgroundColor: colors.white }}>
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl">Flashcards - {treeName}</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-2xl" style={{ color: colors.darkGray }}>Flashcards - {treeName}</h2>
+            <p className="text-sm" style={{ color: colors.darkGray }}>
               Card {currentIndex + 1} of {flashcards.length}
             </p>
           </div>
@@ -134,49 +144,42 @@ export default function FlashcardViewModal({
           </Button>
         </div>
 
-        {/* Flashcard */}
-        <div
-          className="relative h-80 mb-6 cursor-pointer perspective-1000"
-          onClick={() => setIsFlipped(!isFlipped)}
-        >
-          <div
-            className={`w-full h-full transition-all duration-500 transform-style-3d ${
-              isFlipped ? "rotate-y-180" : ""
-            }`}
-            style={{
-              transformStyle: "preserve-3d",
-              transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
-            }}
+        {/* Quizlet-style Flashcard */}
+        <div className="mb-6">
+          <div 
+            className="flashcard-container relative h-[400px] cursor-pointer"
+            onClick={() => setIsFlipped(!isFlipped)}
           >
-            {/* Front */}
-            <div
-              className="absolute inset-0 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center p-8 backface-hidden"
-              style={{ backfaceVisibility: "hidden" }}
-            >
-              <div className="text-center">
-                <p className="text-sm uppercase tracking-wide text-emerald-700 mb-4">
-                  Question
-                </p>
-                <p className="text-xl">{currentCard.front}</p>
-                <p className="text-sm text-gray-500 mt-8">Click to reveal answer</p>
+            <div className={`flashcard-inner ${isFlipped ? 'flipped' : ''}`}>
+              {/* Front of card - Question */}
+              <div className="flashcard-front rounded-xl shadow-lg" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
+                <div className="h-full flex items-center justify-center p-8">
+                  <p className="text-2xl text-center leading-relaxed" style={{ color: colors.darkGray }}>
+                    {currentCard.front}
+                  </p>
+                </div>
               </div>
-            </div>
 
-            {/* Back */}
-            <div
-              className="absolute inset-0 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center p-8 backface-hidden"
-              style={{
-                backfaceVisibility: "hidden",
-                transform: "rotateY(180deg)",
-              }}
-            >
-              <div className="text-center">
-                <p className="text-sm uppercase tracking-wide text-blue-700 mb-4">
-                  Answer
-                </p>
-                <p className="text-xl">{currentCard.back}</p>
+              {/* Back of card - Answer */}
+              <div className="flashcard-back rounded-xl shadow-lg" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
+                <div className="h-full flex items-center justify-center p-8">
+                  <p className="text-2xl text-center leading-relaxed" style={{ color: colors.darkGray }}>
+                    {currentCard.back}
+                  </p>
+                </div>
               </div>
             </div>
+          </div>
+
+          {/* Footer with flip instruction */}
+          <div 
+            className="mt-4 py-4 px-6 rounded-lg text-center"
+            style={{ backgroundColor: colors.green }}
+          >
+            <p className="text-white text-sm flex items-center justify-center gap-2">
+              Click the card to flip
+              <span className="text-lg">👆</span>
+            </p>
           </div>
         </div>
 
@@ -186,6 +189,7 @@ export default function FlashcardViewModal({
             variant="outline"
             onClick={handlePrevious}
             disabled={flashcards.length <= 1}
+            style={{ borderColor: colors.lightGray, color: colors.darkGray }}
           >
             <ChevronLeft className="w-4 h-4 mr-2" />
             Previous
@@ -195,9 +199,10 @@ export default function FlashcardViewModal({
             {flashcards.map((_, index) => (
               <div
                 key={index}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  index === currentIndex ? "bg-emerald-600" : "bg-gray-300"
-                }`}
+                className="w-2 h-2 rounded-full transition-colors"
+                style={{
+                  backgroundColor: index === currentIndex ? colors.green : colors.lightGray
+                }}
               />
             ))}
           </div>
@@ -206,6 +211,7 @@ export default function FlashcardViewModal({
             variant="outline"
             onClick={handleNext}
             disabled={flashcards.length <= 1}
+            style={{ borderColor: colors.lightGray, color: colors.darkGray }}
           >
             Next
             <ChevronRight className="w-4 h-4 ml-2" />
@@ -213,8 +219,8 @@ export default function FlashcardViewModal({
         </div>
 
         {/* Info */}
-        <p className="text-center text-sm text-gray-500 mt-4">
-          Use left/right arrow keys to navigate, or click the card to flip
+        <p className="text-center text-sm mt-4" style={{ color: colors.darkGray }}>
+          Use ← → arrow keys to navigate, ↑ ↓ to flip
         </p>
       </div>
     </div>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { colors } from "@/lib/colors";
 
 export default function Header() {
   const { data: session, status } = useSession();
@@ -15,21 +16,17 @@ export default function Header() {
     }
   }, [session, status, router]);
 
-  if (status === "loading") {
-    return null;
-  }
-
   if (!session) {
     return null;
   }
 
   return (
-    <header className="border-b bg-white shadow-sm">
+    <header className="shadow-sm" style={{ backgroundColor: colors.white, fontFamily: colors.font, borderBottomColor: colors.borderGreen, borderBottomWidth: '2px' }}>
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand */}
           <div className="flex items-center">
-            <Link href="/" className="text-xl font-bold text-gray-900 hover:text-gray-700">
+            <Link href="/" className="text-xl font-bold px-3 py-2 rounded-md" style={{ fontFamily: colors.font, color: colors.darkGray }} onMouseEnter={(e) => e.currentTarget.style.color = colors.darkGreen} onMouseLeave={(e) => e.currentTarget.style.color = colors.darkGray}>
               GPTree
             </Link>
           </div>
@@ -38,40 +35,37 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             <Link
               href="/tree"
-              className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              className="px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              style={{ fontFamily: colors.font, color: colors.darkGray }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.superLightGreen}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
               Trees
             </Link>
             <Link
               href="/study"
-              className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              className="px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              style={{ fontFamily: colors.font, color: colors.darkGray }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.superLightGreen}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
               Study
             </Link>
 
-            {/* Auth Section */}
-            {status === "loading" ? (
-              <div className="text-gray-500 text-sm">Loading...</div>
-            ) : session ? (
-              <div className="flex items-center space-x-3">
-                <span className="text-gray-700 text-sm">
-                  {session.user?.email || session.user?.name}
-                </span>
-                <button
-                  onClick={() => signOut()}
-                  className="bg-gray-800 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
-                >
-                  Sign Out
-                </button>
-              </div>
-            ) : (
+            <div className="flex items-center space-x-3">
+              <span className="text-sm" style={{ fontFamily: colors.font, color: colors.darkGray }}>
+                {session.user?.email || session.user?.name}
+              </span>
               <button
-                onClick={() => signIn()}
-                className="bg-gray-800 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
+                onClick={() => signOut()}
+                className="text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                style={{ fontFamily: colors.font, backgroundColor: colors.green }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.darkGreen}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.green}
               >
-                Sign In
+                Sign Out
               </button>
-            )}
+            </div>
           </div>
         </div>
       </nav>

@@ -8,7 +8,7 @@ import rehypeRaw from "rehype-raw";
 import rehypeHighlight from "rehype-highlight";
 
 import "katex/dist/katex.min.css";
-import "highlight.js/styles/github-dark.css";
+import "highlight.js/styles/github.css";
 
 import { sanitizeMarkdown } from "@/helpers/markdown";
 
@@ -18,7 +18,7 @@ interface MarkdownRendererProps {
 
 const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
   return (
-    <div className="prose prose-lg max-w-none dark:prose-invert">
+    <div className="prose prose-lg max-w-none">
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex, rehypeRaw, rehypeHighlight]}
@@ -84,7 +84,10 @@ const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
           },
           ol({ children, ...props }: any) {
             return (
-              <ol className="list-decimal list-inside mb-4 space-y-2" {...props}>
+              <ol
+                className="list-decimal list-inside mb-4 space-y-2"
+                {...props}
+              >
                 {children}
               </ol>
             );
@@ -99,7 +102,10 @@ const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
           // Blockquotes
           blockquote({ children, ...props }: any) {
             return (
-              <blockquote className="border-l-4 border-gray-300 pl-4 py-2 my-4 italic bg-gray-50 dark:bg-gray-800" {...props}>
+              <blockquote
+                className="border-l-4 border-gray-300 pl-4 py-2 my-4 italic bg-gray-50"
+                {...props}
+              >
                 {children}
               </blockquote>
             );
@@ -108,7 +114,10 @@ const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
           table({ children, ...props }: any) {
             return (
               <div className="overflow-x-auto my-4">
-                <table className="min-w-full divide-y divide-gray-300 border border-gray-300" {...props}>
+                <table
+                  className="min-w-full divide-y divide-gray-300 border border-gray-300"
+                  {...props}
+                >
                   {children}
                 </table>
               </div>
@@ -116,7 +125,7 @@ const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
           },
           thead({ children, ...props }: any) {
             return (
-              <thead className="bg-gray-100 dark:bg-gray-700" {...props}>
+              <thead className="bg-gray-100" {...props}>
                 {children}
               </thead>
             );
@@ -174,13 +183,16 @@ const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
             const match = /language-(\w+)/.exec(className || "");
             const inline = !match;
             return !inline && match ? (
-              <pre className="rounded-lg bg-gray-900 text-gray-100 p-4 overflow-x-auto my-4">
+              <pre className="rounded-lg bg-gray-100 text-gray-900 p-4 overflow-x-auto my-4 border border-gray-300">
                 <code className={className} {...props}>
                   {children}
                 </code>
               </pre>
             ) : (
-              <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+              <code
+                className="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono text-gray-900"
+                {...props}
+              >
                 {children}
               </code>
             );

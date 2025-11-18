@@ -1,12 +1,10 @@
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 // import { SessionProvider } from "next-auth/react"
 import type { Metadata } from "next";
 
 import "./globals.css";
 import { SessionProviderWrapper } from "@/components/SessionProviderWrapper";
-import GlobalSidebar from "@/components/GlobalSidebar";
-import SidebarLayoutWrapper from "@/components/SidebarLayoutWrapper";
-import { colors } from "@/lib/colors";
+import Header from "@/components/Header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,11 +13,6 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const inter = Inter({
-  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -33,18 +26,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  
   return (
     <html lang="en" className="light">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
-        style={{ fontFamily: colors.font }}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <SessionProviderWrapper>
-          <GlobalSidebar />
-          <SidebarLayoutWrapper>
-            {children}
-          </SidebarLayoutWrapper>
+          <Header />
+          {children}
         </SessionProviderWrapper>
       </body>
     </html>

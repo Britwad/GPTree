@@ -2,7 +2,6 @@
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { colors } from "@/lib/colors";
 
 export default function LandingPage() {
   const { status } = useSession();
@@ -21,20 +20,17 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ backgroundColor: colors.superLightGreen }}>
-      <h1 className="text-5xl font-bold mb-4 tracking-tight" style={{ color: colors.darkGray, fontFamily: 'var(--font-inter)' }}>GPTree</h1>
-      <p className="text-xl font-medium mb-8 text-center max-w-md" style={{ color: colors.darkGray, fontFamily: 'var(--font-inter)' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-white to-gray-100 px-4">
+      <h1 className="text-5xl font-bold mb-4 text-gray-800 tracking-tight">GPTree</h1>
+      <p className="text-xl font-medium text-gray-600 mb-8 text-center max-w-md">
         Learn anything, one branch at a time.
       </p>
 
       <div className="flex flex-col gap-4 w-full max-w-sm">
-        <p className="text-center mb-2" style={{ color: colors.darkGray, fontFamily: 'var(--font-inter)' }}>Sign in to get started</p>
+        <p className="text-center text-gray-500 mb-2">Sign in to get started</p>
         <button
           onClick={() => signIn("google")}
-          className="px-4 py-2 text-white rounded-lg shadow transition"
-          style={{ backgroundColor: colors.green, fontFamily: 'var(--font-inter)' }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.darkGreen}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.green}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
         >
           Continue with Google
         </button>
@@ -44,17 +40,11 @@ export default function LandingPage() {
             value={userEmail}
             onChange={(e) => setUserEmail(e.target.value)}
             placeholder="Enter your email"
-            className="flex-1 rounded-lg px-4 py-2 focus:outline-none"
-            style={{ borderWidth: '1px', borderColor: colors.lightGray, backgroundColor: colors.white, color: colors.darkGray, fontFamily: 'var(--font-inter)' }}
-            onFocus={(e) => e.currentTarget.style.borderColor = colors.green}
-            onBlur={(e) => e.currentTarget.style.borderColor = colors.lightGray}
+            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-900 focus:ring-1 focus:ring-gray-300 focus:ring-2 focus:ring-green-500 focus:outline-none"
           />
           <button
             onClick={() => signIn("email", { email: userEmail })}
-            className="px-4 py-2 text-white rounded-lg shadow transition"
-            style={{ backgroundColor: colors.green, fontFamily: 'var(--font-inter)' }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.darkGreen}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.green}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
           >
             Continue
           </button>

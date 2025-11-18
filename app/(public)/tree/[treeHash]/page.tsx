@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { ReactFlow, XYPosition, Controls } from '@xyflow/react';
+import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge, XYPosition } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { colors } from '@/lib/colors';
 import NodeModal from '@/components/app/tree/NodeModal';
 import TreeNode from '@/components/app/tree/TreeNode';
 import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { type Node, type Tree } from '@/app/generated/prisma/client';
 import { generateNode } from '@/frontend_helpers/node_helpers';
-import { CreateNode, NodeSchema } from '@/lib/validation_schemas';
-import { JSONParser } from "@streamparser/json-whatwg"
+import { CreateNode, GetNodesSchema, NodeSchema } from '@/lib/validation_schemas';
+import { JSONParser, ParsedElementInfo } from "@streamparser/json-whatwg"
+import { set } from 'zod';
 
 interface FlowNode {
   id: string;
@@ -308,38 +308,18 @@ export default function App() {
   }
 
   return (
-    <div className="w-full" style={{ height: 'calc(100vh - 0px)' }}>
+    <div className="w-full h-full">
       <style jsx global>{`
         .react-flow__node {
           padding: 0;
-          border: none !important;
+          border: none;
           background: transparent;
-          box-shadow: none !important;
+          box-shadow: none;
           width: fit-content;
           height: fit-content;
-          outline: none !important;
         }
         .react-flow__node.selected {
-          box-shadow: none !important;
-          outline: none !important;
-          border: none !important;
-          background: transparent !important;
-        }
-        .react-flow__node:focus,
-        .react-flow__node:focus-visible {
-          outline: none !important;
-          border: none !important;
-          box-shadow: none !important;
-        }
-        .react-flow__node.selected::after {
-          display: none !important;
-        }
-        .react-flow__edge {
-          pointer-events: none !important;
-        }
-        .react-flow__renderer {
-          background: ${colors.superLightGreen} !important;
-          font-family: var(--font-inter), sans-serif !important;
+          box-shadow: none;
         }
       `}</style>
       <ReactFlow
@@ -355,10 +335,8 @@ export default function App() {
         zoomOnScroll={true}
         zoomOnPinch={true}
         fitView
-      >
-        <Controls />
-      </ReactFlow>
-
+        style={{ background: 'white' }}
+      />
       {(selectedNode || streamingIsOpen) && <NodeModal
         onClose={() => {
           setSelectedNode(null);

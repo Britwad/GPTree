@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as React from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Flashcard } from "@/lib/App";
@@ -98,6 +98,26 @@ export default function FlashcardViewModal({
     setCurrentIndex((prev) => (prev - 1 + flashcards.length) % flashcards.length);
   };
 
+  // Add keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setIsFlipped(false);
+        setCurrentIndex((prev) => (prev - 1 + flashcards.length) % flashcards.length);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        setIsFlipped(false);
+        setCurrentIndex((prev) => (prev + 1) % flashcards.length);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [flashcards.length]);
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl max-w-2xl w-full p-8">
@@ -194,7 +214,7 @@ export default function FlashcardViewModal({
 
         {/* Info */}
         <p className="text-center text-sm text-gray-500 mt-4">
-          Use arrow keys or click the card to flip
+          Use left/right arrow keys to navigate, or click the card to flip
         </p>
       </div>
     </div>

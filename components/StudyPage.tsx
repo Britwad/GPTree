@@ -379,6 +379,40 @@ export default function StudyPage({
     }
   };
 
+  // Add keyboard navigation for arrow keys
+  useEffect(() => {
+    if (studyMode !== "studying") return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle arrow keys if not typing in an input/textarea
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+        return;
+      }
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        if (currentCardIndex > 0) {
+          setShowAnswer(false);
+          setUserAnswer("");
+          setCurrentCardIndex((prev) => prev - 1);
+        }
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        if (currentCardIndex < availableFlashcards.length - 1) {
+          setShowAnswer(false);
+          setUserAnswer("");
+          setCurrentCardIndex((prev) => prev + 1);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [studyMode, currentCardIndex, availableFlashcards.length]);
+
   // Selection Mode
   if (studyMode === "select") {
     const totalCards = treeStats.reduce((sum, tree) => sum + tree.flashcardCount, 0);

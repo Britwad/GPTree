@@ -4,6 +4,7 @@ import { Prisma } from "@/app/generated/prisma";
 import { z } from "zod";
 import { CreateNodeSchema, GetNodesSchema, StructuredNodeSchema, CreatedFlashcard, CreateNode } from "@/lib/validation_schemas";
 import { generateNodeStream } from "@/backend_helpers/groq_helpers";
+import { verifyUserAuthorization } from "@/lib/auth_helpers";
 
 export async function GET(request: NextRequest) {
     try {
@@ -13,8 +14,11 @@ export async function GET(request: NextRequest) {
             treeHash: searchParams.get("treeHash") ?? undefined,
             userId: searchParams.get("userId") ?? undefined,
         });
-        if (!parsedQuery.userId) {
-            return NextResponse.json({ error: "userId is required" }, { status: 400 });
+        
+        // Verify user is authenticated and requesting their own data
+        const { authorized, response: authResponse } = await verifyUserAuthorization(parsedQuery.userId);
+        if (!authorized) {
+            return authResponse;
         }
 
         const treeFilter: { userId: string; hash?: string } = {
@@ -55,6 +59,12 @@ export async function POST(request: NextRequest) {
         // First we parse the input
         const body = await request.json();
         const parsed = CreateNodeSchema.parse(body);
+
+        // Verify user is authenticated and requesting their own data
+        const { authorized, response: authResponse } = await verifyUserAuthorization(parsed.userId);
+        if (!authorized) {
+            return authResponse;
+        }
 
         // We'll put the stream in this variable later
         let nodeStream: ReadableStream<Uint8Array>;

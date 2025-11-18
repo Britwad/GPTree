@@ -25,7 +25,9 @@ export default function Page() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/trees?userId=${encodeURIComponent(session.user.id)}`);
+        const res = await fetch(`/api/trees?userId=${encodeURIComponent(session.user.id)}`, {
+          credentials: 'include'
+        });
         const data = await res.json();
         
         if (!cancelled) {

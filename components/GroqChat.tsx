@@ -23,6 +23,7 @@ export default function GroqChat() {
       const res = await fetch("/api/groq/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify({ messages }),
       });
 

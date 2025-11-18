@@ -7,6 +7,7 @@ import {
     type PaginatedTreesResponse, 
     InitTreeSchema,
 } from "@/lib/validation_schemas";
+import { verifyUserAuthorization } from "@/lib/auth_helpers";
 
 // Create the root node and flashcards for a user's new tree
 export async function POST(request: NextRequest) {
@@ -49,6 +50,12 @@ export async function GET(request: NextRequest) {
         const userId = url.searchParams.get('userId');
         const limitParam = url.searchParams.get('limit');
         const offsetParam = url.searchParams.get('offset');
+
+        // Verify user is authenticated and requesting their own data
+        const { authorized, response: authResponse } = await verifyUserAuthorization(userId ?? undefined);
+        if (!authorized) {
+            return authResponse;
+        }
 
         // Validate using schema
         const params = GetTreesSchema.parse({

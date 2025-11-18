@@ -156,7 +156,9 @@ export default function App() {
       }
       
       try {
-        const res = await fetch(`/api/nodes?treeHash=${params.treeHash}&userId=${session.user.id}`);
+        const res = await fetch(`/api/nodes?treeHash=${params.treeHash}&userId=${session.user.id}`, {
+          credentials: 'include'
+        });
         if (!res.ok) {
           throw new Error('Failed to fetch tree data');
         }
@@ -207,7 +209,9 @@ export default function App() {
           // Check if we're creating a root node
           if (root) {
             // We need the tree ID to create the root node
-            const treeRes = await fetch(`/api/trees/${params.treeHash}`);
+            const treeRes = await fetch(`/api/trees/${params.treeHash}`, {
+          credentials: 'include'
+        });
             if (!treeRes.ok) {
               throw new Error('Failed to fetch tree info for root node creation');
             }
@@ -286,7 +290,9 @@ export default function App() {
    */
   const onStreamFinish = async () => {
     // Fetch the latest node that was created
-    const node_res = await fetch(`/api/trees/${params.treeHash}/latest_node`);
+    const node_res = await fetch(`/api/trees/${params.treeHash}/latest_node`, {
+      credentials: 'include'
+    });
     if (!node_res.ok) {
       throw new Error('Failed to fetch latest node after streaming');
     }

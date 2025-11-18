@@ -208,7 +208,9 @@ export default function StudyPage({
 
     (async () => {
       try {
-        const res = await fetch(`/api/nodes?userId=${encodeURIComponent(userId)}`);
+        const res = await fetch(`/api/nodes?userId=${encodeURIComponent(userId)}`, {
+          credentials: 'include'
+        });
         const json = await res.json();
         const nodes = json.nodes || [];
 

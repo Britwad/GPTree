@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import StudyPage from "@/components/StudyPage";
+import StudyPage from "@/components/study/StudyPage";
 import { useState, useEffect } from "react";
 import type { Tree } from "@/lib/App";
 import { useSession } from "next-auth/react";

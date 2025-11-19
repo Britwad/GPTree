@@ -30,6 +30,7 @@ export async function GET(
     }
 
     const nodeMap = new Map();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let rootNode: any = null;
 
     tree.nodes.forEach(node => {

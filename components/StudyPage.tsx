@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -183,9 +184,7 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
 Progress.displayName = "Progress";
 
 // Textarea Component
-interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
-
-const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+const Textarea = React.forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(
   ({ className = "", ...props }, ref) => {
     return (
       <textarea
@@ -530,7 +529,7 @@ export default function StudyPage({
         <Card className="p-12 text-center max-w-lg w-full">
           <h2 className="text-3xl mb-2" style={{ color: colors.darkGray }}>Session Complete!</h2>
           <p className="mb-8" style={{ color: colors.darkGray }}>
-            You've reviewed {reviewedCount} cards. Great work!
+            `You&apos;ve reviewed {reviewedCount} cards. Great work!
           </p>
 
           {/* Session Stats */}

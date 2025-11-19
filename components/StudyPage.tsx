@@ -224,7 +224,7 @@ export default function StudyPage({
   const [showAnswer, setShowAnswer] = useState(false);
   const [userAnswer, setUserAnswer] = useState("");
   const [reviewedCount, setReviewedCount] = useState(0);
-  const [confidenceLevel, setConfidenceLevel] = useState([50]);
+  const [rating, setRating] = useState<number | null>(null);
   const [sessionStats, setSessionStats] = useState({
     hard: 0,
     good: 0,
@@ -298,7 +298,7 @@ export default function StudyPage({
     setShowAnswer(false);
     setUserAnswer("");
     setReviewedCount(0);
-    setConfidenceLevel([50]);
+    setRating(null);
     setSessionStats({ hard: 0, good: 0, easy: 0 });
   };
 
@@ -342,25 +342,23 @@ export default function StudyPage({
     setCurrentCardIndex((prev) => prev + 1);
   };
 
-  const handleConfidenceSubmit = () => {
+  const handleRatingSubmit = (selectedRating: number) => {
     const currentCard = availableFlashcards[currentCardIndex];
     if (!currentCard) return;
 
-    const confidence = confidenceLevel[0];
-    
-    // Map confidence level to difficulty
-    // 0-33: hard, 34-66: good, 67-100: easy
+    // Map 1-5 rating to difficulty
+    // 1-2: hard, 3: good, 4-5: easy
     let difficulty: "hard" | "good" | "easy";
-    if (confidence <= 33) {
+    if (selectedRating <= 2) {
       difficulty = "hard";
-    } else if (confidence <= 66) {
+    } else if (selectedRating === 3) {
       difficulty = "good";
     } else {
       difficulty = "easy";
     }
 
     handleRecall(difficulty);
-    setConfidenceLevel([50]); // Reset to middle
+    setRating(null); // Reset
   };
 
   const handleNextCard = () => {
@@ -653,44 +651,83 @@ export default function StudyPage({
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8 max-w-4xl">
-        {/* Quizlet-style Flashcard */}
-        <div className="mb-8">
-          <div 
-            className="flashcard-container relative h-[500px] cursor-pointer"
-            onClick={() => setShowAnswer(!showAnswer)}
-          >
-            <div className={`flashcard-inner ${showAnswer ? 'flipped' : ''}`}>
-              {/* Front of card - Question */}
-              <div className="flashcard-front rounded-xl shadow-lg" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
-                <div className="h-full flex items-center justify-center p-8">
-                  <p className="text-2xl text-center leading-relaxed" style={{ color: colors.darkGray }}>
-                    {currentCard.front}
-                  </p>
+      <main className="container mx-auto px-6 py-8 max-w-6xl">
+        <div className="flex gap-6 items-start">
+          {/* Quizlet-style Flashcard */}
+          <div className="flex-1 mb-8">
+            <div 
+              className="flashcard-container relative h-[500px] cursor-pointer"
+              onClick={() => setShowAnswer(!showAnswer)}
+            >
+              <div className={`flashcard-inner ${showAnswer ? 'flipped' : ''}`}>
+                {/* Front of card - Question */}
+                <div className="flashcard-front rounded-xl shadow-lg" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
+                  <div className="h-full flex items-center justify-center p-8">
+                    <p className="text-2xl text-center leading-relaxed" style={{ color: colors.darkGray }}>
+                      {currentCard.front}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              {/* Back of card - Answer */}
-              <div className="flashcard-back rounded-xl shadow-lg" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
-                <div className="h-full flex items-center justify-center p-8">
-                  <p className="text-2xl text-center leading-relaxed" style={{ color: colors.darkGray }}>
-                    {currentCard.back}
-                  </p>
+                {/* Back of card - Answer */}
+                <div className="flashcard-back rounded-xl shadow-lg" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
+                  <div className="h-full flex items-center justify-center p-8">
+                    <p className="text-2xl text-center leading-relaxed" style={{ color: colors.darkGray }}>
+                      {currentCard.back}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Footer with flip instruction */}
+            <div 
+              className="mt-4 py-4 px-6 rounded-lg text-center"
+              style={{ backgroundColor: colors.green }}
+            >
+              <p className="text-white text-sm flex items-center justify-center gap-2">
+                Click the card to flip
+                <span className="text-lg">👆</span>
+              </p>
+            </div>
           </div>
 
-          {/* Footer with flip instruction */}
-          <div 
-            className="mt-4 py-4 px-6 rounded-lg text-center"
-            style={{ backgroundColor: colors.green }}
-          >
-            <p className="text-white text-sm flex items-center justify-center gap-2">
-              Click the card to flip
-              <span className="text-lg">👆</span>
-            </p>
-          </div>
+          {/* Rating System - Only show when answer is revealed */}
+          {showAnswer && (
+            <div className="w-80 flex-shrink-0">
+              <div className="p-6 rounded-xl sticky top-24" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
+                <p className="text-lg font-semibold mb-4 text-center" style={{ color: colors.darkGray }}>
+                  Rate Difficulty
+                </p>
+                <div className="flex flex-col gap-3">
+                  {[1, 2, 3, 4, 5].map((num) => (
+                    <Button
+                      key={num}
+                      onClick={() => handleRatingSubmit(num)}
+                      variant={rating === num ? "default" : "outline"}
+                      size="lg"
+                      className="w-full justify-start"
+                      style={{
+                        ...(rating === num ? {} : { borderColor: colors.lightGray, color: colors.darkGray }),
+                      }}
+                    >
+                      <span className="text-xl font-bold mr-3">{num}</span>
+                      <span className="text-sm">
+                        {num === 1 && "Very Hard"}
+                        {num === 2 && "Hard"}
+                        {num === 3 && "Good"}
+                        {num === 4 && "Easy"}
+                        {num === 5 && "Very Easy"}
+                      </span>
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-xs text-center mt-4" style={{ color: colors.darkGray }}>
+                  Click a rating to continue
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Navigation Controls */}
@@ -733,52 +770,6 @@ export default function StudyPage({
           </Button>
         </div>
 
-        {/* Confidence Level Rating - Only show when answer is revealed */}
-        {showAnswer && (
-          <div className="mt-8 p-6 rounded-xl" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
-            <p className="text-lg font-semibold mb-4 text-center" style={{ color: colors.darkGray }}>
-              RATE DIFFICULTY [CONFIDENCE]
-            </p>
-            <div className="mb-6">
-              {/* Gradient Confidence Bar Container */}
-              <div className="relative h-16">
-                {/* Gradient Bar Background */}
-                <div className="absolute inset-0 flex w-full overflow-hidden rounded-lg">
-                  <div className="h-full" style={{ width: '20%', backgroundColor: '#dc2626' }} />
-                  <div className="h-full" style={{ width: '20%', backgroundColor: '#ea580c' }} />
-                  <div className="h-full" style={{ width: '20%', backgroundColor: '#eab308' }} />
-                  <div className="h-full" style={{ width: '20%', backgroundColor: '#84cc16' }} />
-                  <div className="h-full" style={{ width: '20%', backgroundColor: colors.green }} />
-                </div>
-                {/* Slider with custom styling */}
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value={confidenceLevel[0]}
-                  onChange={(e) => setConfidenceLevel([parseInt(e.target.value)])}
-                  className="w-full h-16 bg-transparent appearance-none cursor-pointer absolute top-0 left-0 z-10"
-                  style={{
-                    WebkitAppearance: 'none',
-                    background: 'transparent',
-                  }}
-                />
-              </div>
-              {/* Current confidence value display */}
-              <div className="text-center text-3xl font-bold mt-4" style={{ color: colors.darkGray }}>
-                {confidenceLevel[0]}%
-              </div>
-            </div>
-            <Button
-              onClick={handleConfidenceSubmit}
-              size="lg"
-              className="w-full"
-            >
-              Continue
-            </Button>
-          </div>
-        )}
 
         {/* Help Text */}
         <div className="mt-6 text-center text-sm" style={{ color: colors.darkGray }}>

@@ -18,7 +18,7 @@ export default function FlashcardModalNavigation({
   onNext,
 }: FlashcardModalNavigationProps) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-center gap-4">
       <Button
         variant="outline"
         onClick={onPrevious}
@@ -28,19 +28,6 @@ export default function FlashcardModalNavigation({
         <ChevronLeft className="w-4 h-4 mr-2" />
         Previous
       </Button>
-
-      <div className="flex gap-2">
-        {Array.from({ length: totalCards }).map((_, index) => (
-          <div
-            key={index}
-            className="w-2 h-2 rounded-full transition-colors"
-            style={{
-              backgroundColor: index === currentIndex ? colors.green : colors.lightGray
-            }}
-          />
-        ))}
-      </div>
-
       <Button
         variant="outline"
         onClick={onNext}

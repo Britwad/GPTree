@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { Star } from "lucide-react";
 import { colors } from "@/lib/colors";
 
 interface FlashcardCardProps {
@@ -10,6 +12,13 @@ interface FlashcardCardProps {
 }
 
 export default function FlashcardCard({ front, back, isFlipped, onFlip }: FlashcardCardProps) {
+  const [isFavorited, setIsFavorited] = useState(false);
+
+  const handleStarClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsFavorited(!isFavorited);
+  };
+
   return (
     <div className="mb-8">
       <div 
@@ -18,7 +27,19 @@ export default function FlashcardCard({ front, back, isFlipped, onFlip }: Flashc
       >
         <div className={`flashcard-inner ${isFlipped ? 'flipped' : ''}`}>
           {/* Front of card - Question */}
-          <div className="flashcard-front rounded-xl shadow-lg" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
+          <div className="flashcard-front rounded-xl shadow-lg relative" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
+            <button
+              onClick={handleStarClick}
+              className="absolute top-4 right-4 z-10 p-2 hover:opacity-80 transition-opacity"
+              aria-label="Favorite"
+            >
+              <Star
+                className="w-6 h-6"
+                fill={isFavorited ? "#FCD34D" : "none"}
+                stroke={isFavorited ? "#FCD34D" : colors.darkGray}
+                style={{ color: isFavorited ? "#FCD34D" : colors.darkGray }}
+              />
+            </button>
             <div className="h-full flex items-center justify-center p-8">
               <p className="text-2xl text-center leading-relaxed" style={{ color: colors.darkGray }}>
                 {front}
@@ -27,7 +48,19 @@ export default function FlashcardCard({ front, back, isFlipped, onFlip }: Flashc
           </div>
 
           {/* Back of card - Answer */}
-          <div className="flashcard-back rounded-xl shadow-lg" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
+          <div className="flashcard-back rounded-xl shadow-lg relative" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
+            <button
+              onClick={handleStarClick}
+              className="absolute top-4 right-4 z-10 p-2 hover:opacity-80 transition-opacity"
+              aria-label="Favorite"
+            >
+              <Star
+                className="w-6 h-6"
+                fill={isFavorited ? "#FCD34D" : "none"}
+                stroke={isFavorited ? "#FCD34D" : colors.darkGray}
+                style={{ color: isFavorited ? "#FCD34D" : colors.darkGray }}
+              />
+            </button>
             <div className="h-full flex items-center justify-center p-8">
               <p className="text-2xl text-center leading-relaxed" style={{ color: colors.darkGray }}>
                 {back}

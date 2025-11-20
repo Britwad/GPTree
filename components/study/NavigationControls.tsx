@@ -18,7 +18,7 @@ export default function NavigationControls({
   onNext,
 }: NavigationControlsProps) {
   return (
-    <div className="flex items-center justify-between mb-6">
+    <div className="flex items-center justify-center gap-4 mb-6">
       <Button
         variant="outline"
         size="sm"
@@ -29,22 +29,6 @@ export default function NavigationControls({
         <ChevronLeft className="w-4 h-4" />
         Previous
       </Button>
-      <div className="flex gap-1.5">
-        {Array.from({ length: Math.min(10, totalCards) }).map((_, index) => (
-          <div
-            key={index}
-            className="w-2 h-2 rounded-full transition-colors"
-            style={{
-              backgroundColor: index === currentIndex ? colors.green : colors.lightGray
-            }}
-          />
-        ))}
-        {totalCards > 10 && (
-          <span className="text-xs ml-2" style={{ color: colors.darkGray }}>
-            +{totalCards - 10}
-          </span>
-        )}
-      </div>
       <Button
         variant="outline"
         size="sm"

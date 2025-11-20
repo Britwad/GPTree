@@ -17,12 +17,15 @@ export default function FlashcardModalNavigation({
   onPrevious,
   onNext,
 }: FlashcardModalNavigationProps) {
+  const isFirstCard = currentIndex === 0;
+  const isLastCard = currentIndex === totalCards - 1;
+
   return (
     <div className="flex items-center justify-center gap-4">
       <Button
         variant="outline"
         onClick={onPrevious}
-        disabled={totalCards <= 1}
+        disabled={totalCards <= 1 || isFirstCard}
         style={{ borderColor: colors.lightGray, color: colors.darkGray }}
       >
         <ChevronLeft className="w-4 h-4 mr-2" />
@@ -31,7 +34,7 @@ export default function FlashcardModalNavigation({
       <Button
         variant="outline"
         onClick={onNext}
-        disabled={totalCards <= 1}
+        disabled={totalCards <= 1 || isLastCard}
         style={{ borderColor: colors.lightGray, color: colors.darkGray }}
       >
         Next
@@ -40,4 +43,3 @@ export default function FlashcardModalNavigation({
     </div>
   );
 }
-

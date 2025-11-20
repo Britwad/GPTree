@@ -13,6 +13,23 @@ type StudyPageProps = {
   onUpdateFlashcard: (flashcardId: number, updates: Partial<Flashcard>) => void;
 };
 
+// Types for the API response
+type ApiFlashcard = {
+  id: number;
+  name: string;
+  content: string;
+  interval?: number;
+  easeFactor?: number;
+  nextReview?: string;
+};
+
+type ApiNode = {
+  id: number;
+  treeId?: number;
+  tree?: { id: number };
+  flashcards?: ApiFlashcard[];
+};
+
 export default function StudyPage({
   trees,
   userId,
@@ -35,17 +52,23 @@ export default function StudyPage({
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      return;
+    }
+
     let cancelled = false;
 
     (async () => {
       try {
-        const res = await fetch(`/api/nodes?userId=${encodeURIComponent(userId)}`);
-        const json = await res.json();
-        const nodes = json.nodes || [];
+        const res = await fetch(
+          `/api/nodes?userId=${encodeURIComponent(userId)}`
+        );
 
-        const cards: Flashcard[] = nodes.flatMap((n: any) =>
-          (n.flashcards || []).map((f: any) => ({
+        const json = (await res.json()) as { nodes?: ApiNode[] };
+        const nodes: ApiNode[] = json.nodes ?? [];
+
+        const cards: Flashcard[] = nodes.flatMap((n) =>
+          (n.flashcards ?? []).map((f) => ({
             id: f.id,
             front: f.name,
             back: f.content,
@@ -57,7 +80,9 @@ export default function StudyPage({
           }))
         );
 
-        if (!cancelled) setFlashcards(cards);
+        if (!cancelled) {
+          setFlashcards(cards);
+        }
       } catch (e) {
         console.error("Failed to load flashcards", e);
       }
@@ -75,12 +100,15 @@ export default function StudyPage({
   }));
 
   // Filter flashcards based on selected trees
-  const availableFlashcards = flashcards.filter(
-    (fc) => selectedTreeIds.includes(fc.treeId)
+  const availableFlashcards = flashcards.filter((fc) =>
+    selectedTreeIds.includes(fc.treeId)
   );
 
   useEffect(() => {
-    if (studyMode === "studying" && currentCardIndex >= availableFlashcards.length) {
+    if (
+      studyMode === "studying" &&
+      currentCardIndex >= availableFlashcards.length
+    ) {
       setStudyMode("select");
       setCurrentCardIndex(0);
     }
@@ -88,12 +116,17 @@ export default function StudyPage({
 
   const toggleTreeSelection = (treeId: number) => {
     setSelectedTreeIds((prev) =>
-      prev.includes(treeId) ? prev.filter((id) => id !== treeId) : [...prev, treeId]
+      prev.includes(treeId)
+        ? prev.filter((id) => id !== treeId)
+        : [...prev, treeId]
     );
   };
 
   const startStudying = () => {
-    if (availableFlashcards.length === 0) return;
+    if (availableFlashcards.length === 0) {
+      return;
+    }
+
     setStudyMode("studying");
     setCurrentCardIndex(0);
     setShowAnswer(false);
@@ -104,9 +137,12 @@ export default function StudyPage({
 
   const handleRecall = (difficulty: "hard" | "good" | "easy") => {
     const currentCard = availableFlashcards[currentCardIndex];
-    if (!currentCard) return;
 
-    // Calculate new interval and ease factor using SM-2 algorithm
+    if (!currentCard) {
+      return;
+    }
+
+    // Calculate new interval and ease factor using SM-2-like logic
     let newInterval = currentCard.interval;
     let newEaseFactor = currentCard.easeFactor;
 
@@ -117,11 +153,12 @@ export default function StudyPage({
       newInterval = Math.floor(currentCard.interval * newEaseFactor);
       newEaseFactor = currentCard.easeFactor;
     } else {
-      newInterval = Math.floor(currentCard.interval * newEaseFactor * 1.3);
+      newInterval = Math.floor(
+        currentCard.interval * newEaseFactor * 1.3
+      );
       newEaseFactor = currentCard.easeFactor + 0.1;
     }
 
-    // Calculate next review date
     const nextReview = new Date();
     nextReview.setDate(nextReview.getDate() + newInterval);
 
@@ -143,11 +180,15 @@ export default function StudyPage({
 
   const handleRatingSubmit = (selectedRating: number) => {
     const currentCard = availableFlashcards[currentCardIndex];
-    if (!currentCard) return;
 
-    // Map 1-5 rating to difficulty
-    // 1-2: hard, 3: good, 4-5: easy
+    if (!currentCard) {
+      return;
+    }
+
+    // Map 1–5 rating to difficulty
+    // 1–2: hard, 3: good, 4–5: easy
     let difficulty: "hard" | "good" | "easy";
+
     if (selectedRating <= 2) {
       difficulty = "hard";
     } else if (selectedRating === 3) {
@@ -177,12 +218,14 @@ export default function StudyPage({
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "ArrowLeft") {
       e.preventDefault();
+
       if (currentCardIndex > 0) {
         setShowAnswer(false);
         setCurrentCardIndex((prev) => prev - 1);
       }
     } else if (e.key === "ArrowRight") {
       e.preventDefault();
+
       if (currentCardIndex < availableFlashcards.length - 1) {
         setShowAnswer(false);
         setCurrentCardIndex((prev) => prev + 1);
@@ -203,16 +246,23 @@ export default function StudyPage({
         onToggleTree={toggleTreeSelection}
         onStartStudying={startStudying}
         onNavigate={(p) => {
-          if (p === "dashboard") onNavigate("dashboard");
-          else if (p === "landing" || p === "study") onNavigate("landing");
-          else onNavigate("study");
+          if (p === "dashboard") {
+            onNavigate("dashboard");
+          } else if (p === "landing" || p === "study") {
+            onNavigate("landing");
+          } else {
+            onNavigate("study");
+          }
         }}
       />
     );
   }
 
   // Completion Screen
-  if (availableFlashcards.length === 0 || currentCardIndex >= availableFlashcards.length) {
+  if (
+    availableFlashcards.length === 0 ||
+    currentCardIndex >= availableFlashcards.length
+  ) {
     return (
       <CompletionScreen
         reviewedCount={reviewedCount}
@@ -244,4 +294,3 @@ export default function StudyPage({
     />
   );
 }
-

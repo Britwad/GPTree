@@ -2,7 +2,6 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "./StudyUIComponents";
-import { colors } from "@/lib/colors";
 
 interface NavigationControlsProps {
   currentIndex: number;
@@ -42,4 +41,3 @@ export default function NavigationControls({
     </div>
   );
 }
-

@@ -30,7 +30,7 @@ export default function GlobalSidebar() {
         : null;
 
     // Use SWR for data fetching
-    const { data, error, isLoading } = useSWR(
+    const { data, isLoading } = useSWR(
         status === "loading" ? null : swrKey,
         fetcher,
         {

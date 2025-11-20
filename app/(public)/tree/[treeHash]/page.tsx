@@ -8,7 +8,7 @@ import NodeModal from '@/components/app/tree/NodeModal';
 import TreeNode from '@/components/app/tree/TreeNode';
 import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { type Node, type Tree } from '@/app/generated/prisma/client';
+import { type Node } from '@/app/generated/prisma/client';
 import { generateNode } from '@/frontend_helpers/node_helpers';
 import { CreateNode, NodeSchema } from '@/lib/validation_schemas';
 import { JSONParser } from "@streamparser/json-whatwg"
@@ -138,7 +138,9 @@ export default function App() {
   const [nodes, setNodes] = useState<FlowNode[]>([]);
   const [edges, setEdges] = useState<FlowEdge[]>([]);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null);
   const [streamingNode, setStreamingNode] = useState<StreamingNode | null>(null);
   const [root, setRoot] = useState<boolean>(false);
@@ -252,6 +254,7 @@ export default function App() {
     };
 
     doStream();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streamingIsOpen]);
 
   const onNodeClick = useCallback((event: React.MouseEvent, node: FlowNode) => {
@@ -348,7 +351,8 @@ export default function App() {
         nodeTypes={nodeTypes}
         onNodeClick={onNodeClick}
         onNodeMouseEnter={onNodeHover}
-        onNodeMouseLeave={(event) => onNodeHover(null, null)}
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        onNodeMouseLeave={(_) => onNodeHover(null, null)}
         nodesDraggable={false}
         panOnScroll={true}
         panOnDrag={true}

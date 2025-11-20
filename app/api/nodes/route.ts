@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { Prisma } from "@/app/generated/prisma";
 import { z } from "zod";
-import { CreateNodeSchema, GetNodesSchema, StructuredNodeSchema, CreatedFlashcard, CreateNode } from "@/lib/validation_schemas";
+import { CreateNodeSchema, GetNodesSchema } from "@/lib/validation_schemas";
 import { generateNodeStream } from "@/backend_helpers/groq_helpers";
 
 export async function GET(request: NextRequest) {

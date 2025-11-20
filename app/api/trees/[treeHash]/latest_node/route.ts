@@ -1,7 +1,7 @@
 // This route gets the most recently created node for a given tree
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { GetTreeByHash, GetTreeByHashSchema } from "@/lib/validation_schemas";
+import { GetTreeByHashSchema } from "@/lib/validation_schemas";
 import { z } from "zod";
 
 /**
@@ -9,10 +9,10 @@ import { z } from "zod";
  * @param request a request for this route that includes the treeHash query parameter
  * @returns a NextResponse with 200 status and the most recent node on success.
  */
-export async function GET(request: NextRequest, { params }: { params: { treeHash: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ treeHash: string }> }) {
     try {
         // First we parse the input
-        const { treeHash } = await params; // Got an error complaining about not awaiting for this, will look into it later
+        const { treeHash } = await params;
         const hash = GetTreeByHashSchema.parse({ hash: treeHash });
 
         // Then get the most recently made node

@@ -1,0 +1,12 @@
+-- AlterTable
+ALTER TABLE "Flashcard" ADD COLUMN     "dueAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "easeFactor" DOUBLE PRECISION NOT NULL DEFAULT 2.5,
+ADD COLUMN     "intervalDays" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "lapses" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "lastReviewedAt" TIMESTAMP(3),
+ADD COLUMN     "learningStepIndex" INTEGER,
+ADD COLUMN     "repetition" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "suspended" BOOLEAN NOT NULL DEFAULT false;
+
+-- CreateIndex
+CREATE INDEX "Flashcard_dueAt_idx" ON "Flashcard"("dueAt");

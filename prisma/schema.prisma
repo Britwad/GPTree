@@ -85,10 +85,21 @@ model Node {
 }
 
 model Flashcard {
-  id      Int    @id @default(autoincrement())
-  name    String
-  content String
-  nodeId  Int
-  userId  String
-  node    Node   @relation(fields: [nodeId], references: [id])
+  id                Int       @id @default(autoincrement())
+  name              String
+  content           String
+  nodeId            Int
+  userId            String
+  node              Node      @relation(fields: [nodeId], references: [id])
+  // fields for spaced rep
+  repetition        Int       @default(0)
+  intervalDays      Int       @default(0)
+  easeFactor        Float     @default(2.5)
+  dueAt             DateTime  @default(now())
+  lastReviewedAt    DateTime?
+  lapses            Int       @default(0)
+  suspended         Boolean   @default(false)
+  learningStepIndex Int?
+
+  @@index([dueAt])
 }

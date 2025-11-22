@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@/app/generated/prisma';
-import type { Flashcard } from '@prisma/client';
+import { PrismaClient, Flashcard } from '@/app/generated/prisma';
 
 const prisma = new PrismaClient();
 

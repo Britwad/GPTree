@@ -75,22 +75,25 @@ export default function StudySessionView({
               isFlipped={showAnswer}
               onFlip={onFlip}
             />
+            <NavigationControls
+              currentIndex={currentCardIndex}
+              totalCards={totalCards}
+              onPrevious={onPrevious}
+              onNext={onNext}
+            />
           </div>
 
-          {showAnswer && (
-            <RatingPanel
-              rating={rating}
-              onRatingSubmit={onRatingSubmit}
-            />
-          )}
+          <div className="w-80 flex-shrink-0">
+            {showAnswer ? (
+              <RatingPanel
+                rating={rating}
+                onRatingSubmit={onRatingSubmit}
+              />
+            ) : (
+              <div className="h-[500px]" />
+            )}
+          </div>
         </div>
-
-        <NavigationControls
-          currentIndex={currentCardIndex}
-          totalCards={totalCards}
-          onPrevious={onPrevious}
-          onNext={onNext}
-        />
 
         <div className="mt-6 text-center text-sm" style={{ color: colors.darkGray }}>
           <p>

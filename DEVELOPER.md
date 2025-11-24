@@ -41,7 +41,7 @@ This document provides comprehensive guidelines for developers contributing to *
 
    ```bash
    npm install
-   npx generate prisma
+   npx prisma generate
    ```
 
 3. **Set Up Environment Variables**

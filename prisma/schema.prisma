@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../app/generated/prisma"
 }
 
 datasource db {
@@ -80,7 +79,7 @@ model Node {
   flashcards Flashcard[]
   parent     Node?       @relation("NodeToChildren", fields: [parentId], references: [id])
   children   Node[]      @relation("NodeToChildren")
-  tree       Tree        @relation(fields: [treeId], references: [id])
+  tree       Tree        @relation(fields: [treeId], references: [id], onDelete: Cascade)
   user       User        @relation(fields: [userId], references: [id])
 }
 
@@ -90,5 +89,5 @@ model Flashcard {
   content String
   nodeId  Int
   userId  String
-  node    Node   @relation(fields: [nodeId], references: [id])
+  node    Node   @relation(fields: [nodeId], references: [id], onDelete: Cascade)
 }

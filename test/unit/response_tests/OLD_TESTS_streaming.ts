@@ -11,7 +11,7 @@
 import { JSONParser } from "@streamparser/json-whatwg";
 import { POST } from "@/app/api/nodes/route";
 import prisma from "@/lib/prisma";
-import { User } from "@/app/generated/prisma/wasm";
+import { User } from "@prisma/client";
 import { CreateTree, TreeSchema } from "@/lib/validation_schemas";
 import { NextRequest } from "next/server";
 import { POST as MakeTree } from '@/app/api/trees/route';

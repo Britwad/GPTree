@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import StudyPage from "@/components/StudyPage";
+import StudyPage from "@/components/study/StudyPage";
 import { useState, useEffect } from "react";
 import type { Tree } from "@/lib/App";
 import { useSession } from "next-auth/react";
@@ -60,7 +60,8 @@ export default function Page() {
         else if (p === "landing" || p === "study") router.push("/");
         else router.push("/study");
       }}
-      onUpdateFlashcard={(id, updates) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      onUpdateFlashcard={(_id, _updates) => {
         // later: call your API to persist
       }}
     />

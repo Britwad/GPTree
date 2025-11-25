@@ -1,6 +1,7 @@
 import { groqNodeAndFlashcards,
         type Message,
-        getGroqChatCompletion } from "@/backend_helpers/groq_helpers";
+        getGroqChatCompletion, 
+        nodeSystemPrompt} from "@/backend_helpers/groq_helpers";
 import prisma from "@/lib/prisma";
 import { StructuredNode } from "@/lib/validation_schemas";
 
@@ -59,11 +60,10 @@ describe("groqNodeAndFlashcards", () => {
         const first_tree = {
             name: "test_tree_a",
             userId: first_user.id,
-            prompt: "This is a test prompt for creating a tree, so make this tree about how to grow trees."
         };
 
         const created_tree = await prisma.tree.create({
-            data: { name: first_tree.name, userId: first_tree.userId } 
+            data: first_tree
         });
 
         // Part of our method expects the response we get back to be in a certain structure
@@ -74,10 +74,15 @@ describe("groqNodeAndFlashcards", () => {
             content: "This is the content for the node that Groq generated.",
             followups: ["Just how many nodes will we make?", "Will this test ever end?"],
         }
-        const msg = "Hello, Groq! This is a test! Please give us structured JSON matching this example: " +
-            JSON.stringify(structuredNode);
+        const msg1 = "Hello, Groq! This is a test! Please give us structured JSON matching this example: "
+                        + JSON.stringify(structuredNode);
+        const msg2 = "You are running in a test environmnent, so follow the system prompt closely "
+                        + "but allow the content you give us to be more 'fake' where needed, and"
+                        + "**obey formatting rules**"
         const messages: Message[] = [
-            { role: "user", content:  msg }
+            { role: "user", content:  msg1 },
+            { role: "developer", content: msg2},
+            { role: "system", content: nodeSystemPrompt}
         ];
         const node_body = {
             question: "This is a test for creating a node and flashcards!",

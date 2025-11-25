@@ -4,9 +4,10 @@ import Modal from "react-modal";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 
-import { type Node } from "@/app/generated/prisma/client";
+import { type Node } from "@prisma/client";
 import { CreateNode } from "@/lib/validation_schemas";
 import MarkdownRenderer from "@/components/Generic/MarkdownRenderer";
+import { colors } from "@/lib/colors";
 
 import type { Styles } from "react-modal";
 
@@ -24,6 +25,10 @@ const customStyles: Styles = {
     borderRadius: "10px",
     overflowY: "auto",
     position: "relative",
+    backgroundColor: colors.white,
+    borderColor: colors.lightGray,
+    borderWidth: "1px",
+    color: colors.darkGray,
     // boxSizing removed to satisfy react-modal Styles type
   },
   overlay: {
@@ -118,7 +123,10 @@ const NodeModal = ({
         {/* Close button - X icon in top right */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute top-4 right-4 transition-colors"
+          style={{ color: colors.lightGray }}
+          onMouseEnter={(e) => e.currentTarget.style.color = colors.darkGray}
+          onMouseLeave={(e) => e.currentTarget.style.color = colors.lightGray}
           aria-label="Close modal"
         >
           <svg
@@ -138,7 +146,7 @@ const NodeModal = ({
         </button>
 
         {/* Header */}
-        <div className="pb-4 border-b border-gray-200">
+        <div className="pb-4" style={{ borderBottomColor: colors.lightGray, borderBottomWidth: '1px' }}>
           <h2 className="text-2xl font-bold">{nodeQuestion}</h2>
         </div>
 
@@ -166,7 +174,21 @@ const NodeModal = ({
                     key={i}
                     onClick={() => onSubmit(question)}
                     disabled={isLoading}
-                    className="w-full text-left px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      borderWidth: '2px',
+                      borderColor: colors.lightGray,
+                      backgroundColor: colors.white,
+                      color: colors.darkGray
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = colors.green;
+                      e.currentTarget.style.backgroundColor = colors.superLightGreen;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = colors.lightGray;
+                      e.currentTarget.style.backgroundColor = colors.white;
+                    }}
                   >
                     {question}
                   </button>
@@ -183,7 +205,21 @@ const NodeModal = ({
                     key={i}
                     onClick={() => onSubmit(question)}
                     disabled={isLoading}
-                    className="w-full text-left px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full text-left px-4 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      borderWidth: '2px',
+                      borderColor: colors.lightGray,
+                      backgroundColor: colors.white,
+                      color: colors.darkGray
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = colors.green;
+                      e.currentTarget.style.backgroundColor = colors.superLightGreen;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = colors.lightGray;
+                      e.currentTarget.style.backgroundColor = colors.white;
+                    }}
                   >
                     {question}
                   </button>
@@ -194,21 +230,31 @@ const NodeModal = ({
         </div>
 
         {/* Footer - Input to create follow-up */}
-        <div className="pt-4 border-t border-gray-200 flex gap-2 items-center">
+        <div className="pt-4 flex gap-2 items-center" style={{ borderTopColor: colors.lightGray, borderTopWidth: '1px' }}>
           <input
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={handleKeyPress}
             placeholder="Enter follow-up question"
             disabled={isLoading}
-            className="flex-1 border-2 border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 rounded-lg px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              borderWidth: '2px',
+              borderColor: colors.lightGray,
+              color: colors.darkGray
+            }}
+            onFocus={(e) => e.currentTarget.style.borderColor = colors.green}
+            onBlur={(e) => e.currentTarget.style.borderColor = colors.lightGray}
           />
           <button
             onClick={() => onSubmit()}
             disabled={isLoading}
-            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: colors.green }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.darkGreen}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.green}
           >
-            {isLoading ? "Creating..." : "Add"}
+            {isLoading ? "Creating..." : "Submit"}
           </button>
         </div>
       </div>

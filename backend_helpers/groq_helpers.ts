@@ -4,7 +4,7 @@ import Groq from "groq-sdk";
 import { createFlashcards } from "./prisma_helpers";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-export type Message = { role: "system" | "user" | "assistant"; content: string };
+export type Message = { role: "system" | "user" | "assistant" | "developer"; content: string };
 
 export async function getGroqChatCompletion(
   messages: Message[],
@@ -224,7 +224,7 @@ Behavior:
 - "status": "success" → the user’s question is educational and you can answer it directly.
 - "status": "clarify" → the user’s question is vague, off-topic, or not clearly educational.
   • In this case, write one short clarifying question in "content" that guides the user back on track.
-  • "followups" may include up to 3 optional answers to “Did you mean…?” that reinterprets the query into concrete educational questions.
+  • "followups" may include up to 3 optional replacement questions that reinterprets the query into concrete educational questions.
   • Example: ["Teach me about biological trees", "Explain the trees data structure"]
 
 Formatting for "content":
@@ -257,8 +257,8 @@ Example (clarify):
   "name": "Clarification Needed",
   "content": "Could you clarify what kind of trees you mean — biological or data structures?",
   "followups": [
-    "Did you mean the biological growth of trees?",
-    "Did you mean binary trees in computer science?"
+    "Teach me about biological growth of trees",
+    "Help me understand binary trees in computer science"
   ]
 }
 `;

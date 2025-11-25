@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { ReactFlow, applyNodeChanges, applyEdgeChanges, addEdge, XYPosition } from '@xyflow/react';
+import { ReactFlow, XYPosition, Controls } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import NodeModal from '@/components/app/tree/NodeModal';
+import { colors } from '@/lib/colors';
 import TreeNode from '@/components/app/tree/TreeNode';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { type Node, type Tree } from '@/app/generated/prisma/client';
+import { type Node } from '@prisma/client';
 import { generateNode } from '@/frontend_helpers/node_helpers';
-import { CreateNode, GetNodesSchema, NodeSchema } from '@/lib/validation_schemas';
-import { JSONParser, ParsedElementInfo } from "@streamparser/json-whatwg"
-import { set } from 'zod';
+import { CreateNode, NodeSchema } from '@/lib/validation_schemas';
+import { JSONParser } from "@streamparser/json-whatwg"
+import ConversationPanel from '@/components/app/tree/ConversationPanel';
 
 interface FlowNode {
   id: string;
@@ -134,11 +134,14 @@ const generateNodesAndEdges = (nodesList: Node[]) => {
 
 export default function App() {
   const params = useParams();
+  const router = useRouter();
   const { data: session } = useSession();
   const [nodes, setNodes] = useState<FlowNode[]>([]);
   const [edges, setEdges] = useState<FlowEdge[]>([]);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null);
   const [streamingNode, setStreamingNode] = useState<StreamingNode | null>(null);
   const [root, setRoot] = useState<boolean>(false);
@@ -256,6 +259,7 @@ export default function App() {
     };
 
     doStream();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streamingIsOpen]);
 
   const onNodeClick = useCallback((event: React.MouseEvent, node: FlowNode) => {
@@ -280,6 +284,43 @@ export default function App() {
       isOpen: true
       });
     setStreamingIsOpen(true);
+  };
+
+  const onNodeDeleted = async () => {
+    // Refresh the tree data after node deletion
+    if (!session?.user?.id) return;
+    
+    try {
+      const res = await fetch(`/api/nodes?treeHash=${params.treeHash}&userId=${session.user.id}`);
+      if (!res.ok) {
+        // Tree might have been deleted if root was deleted
+        // In that case, redirect to home or handle appropriately
+        throw new Error('Failed to fetch tree data');
+      }
+      const data = await res.json();
+      
+      if (!data.nodes || data.nodes.length === 0) {
+        // No nodes left - tree was deleted, clear everything
+        setNodes([]);
+        setEdges([]);
+        setSelectedNode(null);
+        return;
+      }
+      
+      // Regenerate the tree layout
+      const { nodes: flowNodes, edges: flowEdges } = generateNodesAndEdges(data.nodes);
+      setNodes(flowNodes);
+      setEdges(flowEdges);
+      setSelectedNode(null);
+    } catch (err) {
+      console.error('Error refreshing tree after node deletion:', err);
+    }
+  };
+
+  const onTreeDeleted = () => {
+    // Navigate to /tree when the entire tree is deleted
+    // The sidebar will automatically refresh its tree list when the page loads
+    router.push('/tree');
   };
 
   /**
@@ -314,46 +355,78 @@ export default function App() {
   }
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full" style={{ height: 'calc(100vh - 0px)' }}>
       <style jsx global>{`
         .react-flow__node {
           padding: 0;
-          border: none;
+          border: none !important;
           background: transparent;
-          box-shadow: none;
+          box-shadow: none !important;
           width: fit-content;
           height: fit-content;
+          outline: none !important;
         }
         .react-flow__node.selected {
-          box-shadow: none;
+          box-shadow: none !important;
+          outline: none !important;
+          border: none !important;
+          background: transparent !important;
+        }
+        .react-flow__node:focus,
+        .react-flow__node:focus-visible {
+          outline: none !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+        .react-flow__node.selected::after {
+          display: none !important;
+        }
+        .react-flow__edge {
+          pointer-events: none !important;
+        }
+        .react-flow__renderer {
+          background: ${colors.superLightGreen} !important;
+          font-family: var(--font-inter), sans-serif !important;
         }
       `}</style>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        onNodeClick={onNodeClick}
-        onNodeMouseEnter={onNodeHover}
-        onNodeMouseLeave={(event) => onNodeHover(null, null)}
-        nodesDraggable={false}
-        panOnScroll={true}
-        panOnDrag={true}
-        zoomOnScroll={true}
-        zoomOnPinch={true}
-        fitView
-        style={{ background: 'white' }}
-      />
-      {(selectedNode || streamingIsOpen) && <NodeModal
-        onClose={() => {
-          setSelectedNode(null);
-        }}
-        node={selectedNode}
-        onNewNode={onNewNode}
-        streamingQuestion={streamingNode?.question}
-        streamingContent={streamingNode?.content}
-        streamingFollowups={streamingNode?.followups}
-        streamingIsOpen={streamingNode?.isOpen}
-      />}
+      <div className="flex h-full">
+
+      {/* LEFT = Conversation */}
+      <div className="flex-1 border-r border-gray-300 bg-white">
+        <ConversationPanel
+          node={selectedNode}
+          hasChildren={selectedNode ? edges.some(edge => edge.source === selectedNode.id.toString()) : false}
+          onNewNode={onNewNode}
+          onNodeDeleted={onNodeDeleted}
+          onTreeDeleted={onTreeDeleted}
+          streamingQuestion={streamingNode?.question}
+          streamingContent={streamingNode?.content}
+          streamingFollowups={streamingNode?.followups}
+          streamingIsOpen={streamingNode?.isOpen}
+        />
+      </div>
+
+      {/* RIGHT = Tree */}
+      <div className="w-[40%]">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          onNodeClick={onNodeClick}
+          onNodeMouseEnter={onNodeHover}
+          onNodeMouseLeave={() => onNodeHover(null, null)}
+          nodesDraggable={false}
+          panOnScroll
+          panOnDrag
+          zoomOnScroll
+          zoomOnPinch
+          fitView
+        >
+          <Controls />
+        </ReactFlow>
+      </div>
+
+    </div>
     </div>
   );
 

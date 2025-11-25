@@ -1,10 +1,12 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter } from "next/font/google";
 // import { SessionProvider } from "next-auth/react"
 import type { Metadata } from "next";
 
 import "./globals.css";
 import { SessionProviderWrapper } from "@/components/SessionProviderWrapper";
-import Header from "@/components/Header";
+import GlobalSidebar from "@/components/GlobalSidebar";
+import SidebarLayoutWrapper from "@/components/SidebarLayoutWrapper";
+import { colors } from "@/lib/colors";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,24 +18,33 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: "GPTree",
   description: "Learn anything, one branch at a time.",
-}
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  
   return (
-    <html lang="en">
+    <html lang="en" className="light">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
+        style={{ fontFamily: colors.font }}
       >
         <SessionProviderWrapper>
-          <Header />
-          {children}
+          <GlobalSidebar />
+          <SidebarLayoutWrapper>
+            {children}
+          </SidebarLayoutWrapper>
         </SessionProviderWrapper>
       </body>
     </html>

@@ -4,7 +4,7 @@
 
 import { z } from 'zod';
 
-import { type Node, type Tree as Prisma_Tree, type Flashcard } from '@/app/generated/prisma/client';
+import { type Node, type Tree as Prisma_Tree, type Flashcard } from '@prisma/client';
 
 // Schema for creating a new user
 export const CreateUserSchema = z.object({
@@ -62,6 +62,13 @@ export const CreateNodeSchema = z.object({
     parentId: z.number().min(1).nullable(),
 });
 export type CreateNode = z.infer<typeof CreateNodeSchema>;
+
+// Schema for deleting a node
+export const DeleteNodeSchema = z.object({
+    deleteMode: z.enum(["node", "branch"]),
+    userId: z.string().min(1),
+});
+export type DeleteNode = z.infer<typeof DeleteNodeSchema>;
 
 // Schema for what we expect from prisma when getting a tree
 export const TreeSchema = z.object({

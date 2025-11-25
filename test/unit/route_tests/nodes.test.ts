@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { type CreateTree } from '@/lib/validation_schemas';
 //import { NextRequest } from 'next/server';
-import { User } from "@/app/generated/prisma";
+import { User } from "@prisma/client";
 
 let first_user: User = {} as User;
 let first_tree: CreateTree = {} as CreateTree;

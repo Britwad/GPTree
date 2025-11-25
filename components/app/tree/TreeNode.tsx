@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
-import { type Node as PrismaNode } from '@/app/generated/prisma/client';
+import { type Node as PrismaNode } from '@prisma/client';
 import { colors } from '@/lib/colors';
 
 function TreeNode({ data, onClick }: NodeProps & { onClick?: (node: PrismaNode) => void }) {

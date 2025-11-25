@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import { ReactFlow, XYPosition, Controls } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { colors } from '@/lib/colors';
-import NodeModal from '@/components/app/tree/NodeModal';
 import TreeNode from '@/components/app/tree/TreeNode';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';

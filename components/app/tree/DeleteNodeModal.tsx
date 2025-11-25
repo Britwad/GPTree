@@ -42,7 +42,7 @@ export default function DeleteNodeModal({
               {isRootNode ? "Delete Tree" : "Delete Node"}
             </h2>
             <p className="text-sm truncate" style={{ color: colors.darkGray }}>
-              "{node.question}"
+              &ldquo;{node.question}&rdquo;
             </p>
           </div>
           <button

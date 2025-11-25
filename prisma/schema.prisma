@@ -19,6 +19,7 @@ model User {
   nodes         Node[]
   sessions      Session[]
   trees         Tree[]
+  studySets     StudySet[]
 }
 
 model Account {
@@ -100,6 +101,21 @@ model Flashcard {
   lapses            Int       @default(0)
   suspended         Boolean   @default(false)
   learningStepIndex Int?
+  // fields for study sets
+  studySetId        Int?
+  studySet          StudySet? @relation(fields: [studySetId], references: [id])
 
   @@index([dueAt])
+  @@index([studySetId])
+}
+
+model StudySet {
+  id        Int       @id @default(autoincrement())
+  title     String
+  slug      String    @unique  // used for /study/[slug]
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  flashcards Flashcard[]
 }

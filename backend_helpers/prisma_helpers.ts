@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import { CreatedFlashcard, FlashcardInput } from "@/lib/validation_schemas";
-import { Node } from "@/app/generated/prisma";
+import { Node } from "@prisma/client";
 import { generateFlashcards } from "@/backend_helpers/groq_helpers";
 
 // This method creates flashcards for the node passed in and stores them in the database

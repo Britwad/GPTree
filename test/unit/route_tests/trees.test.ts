@@ -3,7 +3,7 @@ import { POST as MakeTree } from '@/app/api/trees/route';
 import { GET as GetTree } from '@/app/api/trees/[treeHash]/route';
 import { type CreateTree, TreeSchema } from '@/lib/validation_schemas';
 import { NextRequest } from 'next/server';
-import { User } from "@/app/generated/prisma";
+import { User } from "@prisma/client";
 
 let first_user: User = {} as User;
 let first_tree: CreateTree = {} as CreateTree;

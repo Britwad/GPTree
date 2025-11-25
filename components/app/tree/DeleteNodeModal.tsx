@@ -32,36 +32,31 @@ export default function DeleteNodeModal({
       style={{ backgroundColor: "rgba(0, 0, 0, 0.4)" }}
     >
       <div
-        className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 overflow-hidden"
+        className="bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 overflow-hidden relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b" style={{ borderColor: colors.lightGray }}>
-          <div className="flex-1 min-w-0 pr-2">
-            <h2 className="text-lg font-bold" style={{ color: colors.darkGray }}>
-              {isRootNode ? "Delete Tree" : "Delete Node"}
-            </h2>
-            <p className="text-sm truncate" style={{ color: colors.darkGray }}>
-              &ldquo;{node.question}&rdquo;
-            </p>
-          </div>
-          <button
-            onClick={() => !isDeleting && onClose()}
-            disabled={isDeleting}
-            className="p-1 rounded-lg transition-colors disabled:opacity-50 flex-shrink-0"
-            style={{ color: colors.darkGray }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.superLightGreen)}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-          >
-            <X size={20} weight="bold" />
-          </button>
+        <div className="p-6 border-b" style={{ borderColor: colors.lightGray }}>
+          <h2 className="text-lg font-bold" style={{ color: colors.darkGray }}>
+            Are you sure you want to delete this {isRootNode ? "tree" : "node"}?
+          </h2>
+          <p className="text-sm mt-1" style={{ color: colors.darkGray }}>
+            &ldquo;{node.question}&rdquo;
+          </p>
         </div>
+        <button
+          onClick={() => !isDeleting && onClose()}
+          disabled={isDeleting}
+          className="absolute top-4 right-4 p-1 rounded-lg transition-colors disabled:opacity-50"
+          style={{ color: colors.darkGray }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.superLightGreen)}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+        >
+          <X size={20} weight="bold" />
+        </button>
 
         {/* Content */}
         <div className="p-6 space-y-6">
-          <p className="text-sm" style={{ color: colors.darkGray }}>
-            Are you sure you want to delete this {isRootNode ? "tree" : "node"}?
-          </p>
 
           {/* Actions */}
           <div className="flex flex-wrap gap-3 justify-end">
@@ -116,7 +111,7 @@ export default function DeleteNodeModal({
                       }
                     >
                       <TrashSimple size={18} weight="bold" />
-                      {isDeleting ? "Deleting..." : "Delete Entire Branch"}
+                      {isDeleting ? "Deleting..." : "Delete Branch"}
                     </button>
                   </>
                 )}

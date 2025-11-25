@@ -63,6 +63,13 @@ export const CreateNodeSchema = z.object({
 });
 export type CreateNode = z.infer<typeof CreateNodeSchema>;
 
+// Schema for deleting a node
+export const DeleteNodeSchema = z.object({
+    deleteMode: z.enum(["node", "branch"]),
+    userId: z.string().min(1),
+});
+export type DeleteNode = z.infer<typeof DeleteNodeSchema>;
+
 // Schema for what we expect from prisma when getting a tree
 export const TreeSchema = z.object({
     name: z.string().min(1),

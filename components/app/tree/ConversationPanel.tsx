@@ -1,31 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { Trash } from "phosphor-react";
 
 import { type Node } from "@/app/generated/prisma/client";
 import { CreateNode } from "@/lib/validation_schemas";
 import MarkdownRenderer from "@/components/Generic/MarkdownRenderer";
+import DeleteNodeModal from "@/components/app/tree/DeleteNodeModal";
 import { colors } from "@/lib/colors";
 
 export default function ConversationPanel({
   node,
+  hasChildren,
   onNewNode,
   streamingQuestion,
   streamingContent,
   streamingFollowups,
-  streamingIsOpen
+  streamingIsOpen,
+  onNodeDeleted,
+  onTreeDeleted
 }: {
   node: Node | null;
+  hasChildren?: boolean;
   onNewNode: (newNode: CreateNode) => void;
   streamingQuestion?: string;
   streamingContent?: string;
   streamingFollowups?: string[];
   streamingIsOpen?: boolean;
+  onNodeDeleted?: () => void;
+  onTreeDeleted?: () => void;
 }) {
   const { data: session } = useSession();
   const [prompt, setPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const nodeQuestion = node?.question || streamingQuestion || "";
 
@@ -59,7 +69,7 @@ export default function ConversationPanel({
       question: promptToUse.trim(),
       userId: session.user.id,
       treeId,
-      parentId,
+      parentId: parentId || null,
     };
 
     try {
@@ -74,17 +84,87 @@ export default function ConversationPanel({
     if (e.key === "Enter") onSubmit();
   };
 
+  const handleDeleteNode = async (deleteMode: "node" | "branch") => {
+    if (!node || !session?.user?.id) {
+      alert("Cannot delete node");
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      console.log("Attempting to delete node:", node.id, "Mode:", deleteMode);
+      const response = await fetch(`/api/nodes/${node.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          deleteMode,
+          userId: session.user.id,
+        }),
+      });
+
+      const data = await response.json();
+      console.log("Delete response:", response.status, data);
+
+      if (!response.ok) {
+        throw new Error(data.detail || data.error || "Failed to delete node");
+      }
+
+      setShowDeleteModal(false);
+      
+      // Check if this was a root node (no parent) - if so, tree was deleted
+      if (!node.parentId) {
+        onTreeDeleted?.();
+      } else {
+        onNodeDeleted?.();
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert(error instanceof Error ? error.message : "Failed to delete node");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   /*Panel reflects the same layout as node popup did*/
   return (
     <div className="flex flex-col h-full p-6 overflow-y-auto">
       
       {/* HEADER */}
       <div
-        className="pb-4"
+        className="pb-4 flex justify-between items-center"
         style={{ borderBottomColor: colors.lightGray, borderBottomWidth: "1px" }}
       >
         <h2 className="text-2xl font-bold">{nodeQuestion || "Select a node"}</h2>
+        {node && (
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="px-3 py-2 rounded-lg transition-colors text-white flex items-center gap-2"
+            style={{ backgroundColor: colors.green }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = colors.darkGreen)
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = colors.green)
+            }
+            title="Delete this node"
+          >
+            <Trash size={20} weight="bold" />
+          </button>
+        )}
       </div>
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {node && (
+        <DeleteNodeModal
+          node={node}
+          isOpen={showDeleteModal}
+          isDeleting={isDeleting}
+          hasChildren={hasChildren ?? false}
+          isRootNode={!node.parentId}
+          onClose={() => setShowDeleteModal(false)}
+          onDelete={handleDeleteNode}
+        />
+      )}
 
       {/* CONTENT AREA */}
       <div className="flex-1 overflow-auto py-4">

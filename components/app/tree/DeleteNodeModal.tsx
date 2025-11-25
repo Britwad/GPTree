@@ -1,6 +1,6 @@
 "use client";
 
-import { type Node } from "@/app/generated/prisma/client";
+import { type Node } from "@prisma/client";
 import { Trash, TrashSimple, X } from "phosphor-react";
 import { colors } from "@/lib/colors";
 

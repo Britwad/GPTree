@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { Trash } from "phosphor-react";
 
-import { type Node } from "@/app/generated/prisma/client";
+import { type Node } from "@prisma/client";
 import { CreateNode } from "@/lib/validation_schemas";
 import MarkdownRenderer from "@/components/Generic/MarkdownRenderer";
 import DeleteNodeModal from "@/components/app/tree/DeleteNodeModal";

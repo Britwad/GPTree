@@ -4,7 +4,7 @@
 
 import { z } from 'zod';
 
-import { type Node, type Tree as Prisma_Tree, type Flashcard } from '@/app/generated/prisma/client';
+import { type Node, type Tree as Prisma_Tree, type Flashcard } from '@prisma/client';
 
 // Schema for creating a new user
 export const CreateUserSchema = z.object({

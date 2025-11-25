@@ -7,7 +7,7 @@ import { colors } from '@/lib/colors';
 import TreeNode from '@/components/app/tree/TreeNode';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { type Node } from '@/app/generated/prisma/client';
+import { type Node } from '@prisma/client';
 import { generateNode } from '@/frontend_helpers/node_helpers';
 import { CreateNode, NodeSchema } from '@/lib/validation_schemas';
 import { JSONParser } from "@streamparser/json-whatwg"

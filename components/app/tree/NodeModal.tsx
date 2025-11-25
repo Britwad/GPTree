@@ -4,7 +4,7 @@ import Modal from "react-modal";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 
-import { type Node } from "@/app/generated/prisma/client";
+import { type Node } from "@prisma/client";
 import { CreateNode } from "@/lib/validation_schemas";
 import MarkdownRenderer from "@/components/Generic/MarkdownRenderer";
 import { colors } from "@/lib/colors";

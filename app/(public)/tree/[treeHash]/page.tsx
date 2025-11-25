@@ -12,6 +12,7 @@ import { type Node } from '@/app/generated/prisma/client';
 import { generateNode } from '@/frontend_helpers/node_helpers';
 import { CreateNode, NodeSchema } from '@/lib/validation_schemas';
 import { JSONParser } from "@streamparser/json-whatwg"
+import ConversationPanel from '@/components/app/tree/ConversationPanel';
 
 interface FlowNode {
   id: string;
@@ -345,35 +346,41 @@ export default function App() {
           font-family: var(--font-inter), sans-serif !important;
         }
       `}</style>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        onNodeClick={onNodeClick}
-        onNodeMouseEnter={onNodeHover}
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        onNodeMouseLeave={(_) => onNodeHover(null, null)}
-        nodesDraggable={false}
-        panOnScroll={true}
-        panOnDrag={true}
-        zoomOnScroll={true}
-        zoomOnPinch={true}
-        fitView
-      >
-        <Controls />
-      </ReactFlow>
+      <div className="flex h-full">
 
-      {(selectedNode || streamingIsOpen) && <NodeModal
-        onClose={() => {
-          setSelectedNode(null);
-        }}
-        node={selectedNode}
-        onNewNode={onNewNode}
-        streamingQuestion={streamingNode?.question}
-        streamingContent={streamingNode?.content}
-        streamingFollowups={streamingNode?.followups}
-        streamingIsOpen={streamingNode?.isOpen}
-      />}
+      {/* LEFT = Conversation */}
+      <div className="flex-1 border-r border-gray-300 bg-white">
+        <ConversationPanel
+          node={selectedNode}
+          onNewNode={onNewNode}
+          streamingQuestion={streamingNode?.question}
+          streamingContent={streamingNode?.content}
+          streamingFollowups={streamingNode?.followups}
+          streamingIsOpen={streamingNode?.isOpen}
+        />
+      </div>
+
+      {/* RIGHT = Tree */}
+      <div className="w-[40%]">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          onNodeClick={onNodeClick}
+          onNodeMouseEnter={onNodeHover}
+          onNodeMouseLeave={() => onNodeHover(null, null)}
+          nodesDraggable={false}
+          panOnScroll
+          panOnDrag
+          zoomOnScroll
+          zoomOnPinch
+          fitView
+        >
+          <Controls />
+        </ReactFlow>
+      </div>
+
+    </div>
     </div>
   );
 

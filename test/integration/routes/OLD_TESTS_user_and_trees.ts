@@ -7,7 +7,7 @@ import {
   type CreateTree,
   TreeListSchema,
 } from "@/lib/validation_schemas";
-import { User } from "@/app/generated/prisma";
+import { User } from "@prisma/client";
 import { NextRequest } from "next/server";
 
 beforeEach(async () => {

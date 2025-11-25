@@ -52,9 +52,9 @@ export async function GET(request: NextRequest) {
         const offsetParam = url.searchParams.get('offset');
 
         // Verify user is authenticated and requesting their own data
-        const { authorized, response: authResponse } = await verifyUserAuthorization(userId ?? undefined);
-        if (!authorized) {
-            return authResponse;
+        const authResult = await verifyUserAuthorization(userId ?? undefined);
+        if (!authResult.authorized) {
+            return authResult.response;
         }
 
         // Validate using schema

@@ -5,8 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import useSWR from "swr";
+import { colors } from "@/lib/colors";
 import { type PaginatedTreesResponse } from "@/lib/validation_schemas";
-
 
 // Fetcher function for SWR
 const fetcher = async (url: string): Promise<PaginatedTreesResponse> => {

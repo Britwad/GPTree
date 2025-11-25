@@ -15,9 +15,9 @@ export async function GET(request: NextRequest) {
         });
         
         // Verify user is authenticated and requesting their own data
-        const { authorized, response: authResponse } = await verifyUserAuthorization(parsedQuery.userId);
-        if (!authorized) {
-            return authResponse;
+        const authResult = await verifyUserAuthorization(parsedQuery.userId);
+        if (!authResult.authorized) {
+            return authResult.response;
         }
 
         const treeFilter: { userId: string; hash?: string } = {
@@ -60,9 +60,9 @@ export async function POST(request: NextRequest) {
         const parsed = CreateNodeSchema.parse(body);
 
         // Verify user is authenticated and requesting their own data
-        const { authorized, response: authResponse } = await verifyUserAuthorization(parsed.userId);
-        if (!authorized) {
-            return authResponse;
+        const authResult = await verifyUserAuthorization(parsed.userId);
+        if (!authResult.authorized) {
+            return authResult.response;
         }
 
         // We'll put the stream in this variable later

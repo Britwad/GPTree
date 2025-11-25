@@ -49,11 +49,16 @@ export async function getAuthenticatedSession() {
   return session;
 }
 
+
+type AuthResult = 
+  | { authorized: false; response: NextResponse }
+  | { authorized: true; response: null };
+
 /**
  * Verify that the request is from an authenticated user and that the userId
  * matches the session. Returns { authorized: true } or { authorized: false, response: NextResponse }
  */
-export async function verifyUserAuthorization(requestedUserId: string | undefined) {
+export async function verifyUserAuthorization(requestedUserId: string | undefined): Promise<AuthResult> {
   if (!requestedUserId) {
     return { authorized: false, response: NextResponse.json({ error: "userId is required" }, { status: 400 }) };
   }

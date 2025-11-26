@@ -2,30 +2,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
+import { Flashcard } from "@/app/generated/prisma";
 
-/**
- * Purpose:
- * - POST: Accepts { userId, count? } in body (or userId via query) and returns the next N cards for the studyset identified by slug.
- * - GET: Accepts ?userId=... and returns some default list (useful for quick debug).
- *
- * This file strictly avoids `any`:
- * - request.json() -> cast to unknown -> validated with Zod
- * - typed params shape
- * - explicit return type Promise<NextResponse>
- */
 
-/* ========== Zod schema for incoming POST body ========== */
+/* Zod schema for incoming POST body (matches the minimal contract) */
 const NextBodySchema = z.object({
   userId: z.string().min(1),
   count: z.number().int().positive().optional(),
 });
-
 type NextBody = z.infer<typeof NextBodySchema>;
 
-/* ========== typed shape for the route params ========== */
+/* typed params shape */
 type Params = { params: { slug: string } };
 
-/* ========== typed card payload returned to client ========== */
+/* typed payload returned to client */
 type CardPayload = {
   id: number;
   name: string;
@@ -33,11 +23,24 @@ type CardPayload = {
   repetition: number;
   intervalDays: number;
   easeFactor: number;
-  dueAt: string; // ISO string
+  dueAt: string; // ISO
   lastReviewedAt: string | null;
 };
 
-/* ========== helper: pickNext (pure, typed) ========== */
+/* DB row shape we select from Prisma */
+type RawCardDb = Pick<
+  Flashcard,
+  | "id"
+  | "name"
+  | "content"
+  | "repetition"
+  | "intervalDays"
+  | "easeFactor"
+  | "dueAt"
+  | "lastReviewedAt"
+>;
+
+/* selection logic: due -> new -> others */
 function pickNext(cards: CardPayload[], count = 10): CardPayload[] {
   const now = Date.now();
 
@@ -64,17 +67,17 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-/* ========== POST handler ========== */
-export async function POST(request: NextRequest, { params }: Params): Promise<NextResponse> {
+/* POST: return next cards for a studyset slug */
+export async function POST(request: NextRequest, { params }: Params) {
   try {
     const { slug } = params;
     if (!slug) {
       return NextResponse.json({ error: "slug required" }, { status: 400 });
     }
 
-    // parse + validate body safely (no any)
-    const raw = (await request.json()) as unknown;
-    const parsed = NextBodySchema.parse(raw) as NextBody;
+    // Read and parse the request (use .parse to match your tree route style)
+    const body = await request.json();
+    const parsed = NextBodySchema.parse(body) as NextBody;
 
     // allow fallback userId via query param
     const url = new URL(request.url);
@@ -88,13 +91,10 @@ export async function POST(request: NextRequest, { params }: Params): Promise<Ne
 
     // Find studyset by slug
     const set = await prisma.studySet.findUnique({ where: { slug } });
-    if (!set) {
-      return NextResponse.json({ error: "StudySet not found" }, { status: 404 });
-    }
+    if (!set) return NextResponse.json({ error: "StudySet not found" }, { status: 404 });
 
     // Fetch candidate flashcards for that set and user
-    // Select only fields we need and map to CardPayload
-    const rawCards = await prisma.flashcard.findMany({
+    const rawCards = (await prisma.flashcard.findMany({
       where: { studySetId: set.id, userId },
       select: {
         id: true,
@@ -106,8 +106,9 @@ export async function POST(request: NextRequest, { params }: Params): Promise<Ne
         dueAt: true,
         lastReviewedAt: true,
       },
-    });
+    })) as RawCardDb[];
 
+    // Map DB rows to safe payload (ISO dates)
     const cards: CardPayload[] = rawCards.map((c) => ({
       id: c.id,
       name: c.name,
@@ -115,8 +116,12 @@ export async function POST(request: NextRequest, { params }: Params): Promise<Ne
       repetition: c.repetition ?? 0,
       intervalDays: c.intervalDays ?? 0,
       easeFactor: c.easeFactor ?? 2.5,
-      dueAt: c.dueAt instanceof Date ? c.dueAt.toISOString() : new Date(c.dueAt).toISOString(),
-      lastReviewedAt: c.lastReviewedAt ? (c.lastReviewedAt instanceof Date ? c.lastReviewedAt.toISOString() : new Date(c.lastReviewedAt).toISOString()) : null,
+      dueAt: c.dueAt instanceof Date ? c.dueAt.toISOString() : new Date(String(c.dueAt)).toISOString(),
+      lastReviewedAt: c.lastReviewedAt
+        ? c.lastReviewedAt instanceof Date
+          ? c.lastReviewedAt.toISOString()
+          : new Date(String(c.lastReviewedAt)).toISOString()
+        : null,
     }));
 
     const next = pickNext(cards, count);
@@ -126,15 +131,16 @@ export async function POST(request: NextRequest, { params }: Params): Promise<Ne
     console.error("Error in POST /api/studysets/[slug]/next:", err);
 
     if (err instanceof z.ZodError) {
-      return NextResponse.json({ errors: err.flatten() }, { status: 400 });
+      // match your tree route pattern: z.flattenError(err)
+      return NextResponse.json({ errors: z.flattenError(err) }, { status: 400 });
     }
 
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
 
-/* ========== GET handler (debug / convenience) ========== */
-export async function GET(request: NextRequest, { params }: Params): Promise<NextResponse> {
+/* GET: convenience/debug endpoint */
+export async function GET(request: NextRequest, { params }: Params) {
   try {
     const { slug } = params;
     if (!slug) {
@@ -148,7 +154,7 @@ export async function GET(request: NextRequest, { params }: Params): Promise<Nex
     const set = await prisma.studySet.findUnique({ where: { slug } });
     if (!set) return NextResponse.json({ error: "StudySet not found" }, { status: 404 });
 
-    const rawCards = await prisma.flashcard.findMany({
+    const rawCards = (await prisma.flashcard.findMany({
       where: { studySetId: set.id, userId },
       orderBy: { dueAt: "asc" },
       take: 20,
@@ -158,18 +164,23 @@ export async function GET(request: NextRequest, { params }: Params): Promise<Nex
         content: true,
         dueAt: true,
       },
-    });
+    })) as Pick<Flashcard, "id" | "name" | "content" | "dueAt">[];
 
     const cards = rawCards.map((c) => ({
       id: c.id,
       name: c.name,
       content: c.content,
-      dueAt: c.dueAt instanceof Date ? c.dueAt.toISOString() : new Date(c.dueAt).toISOString(),
+      dueAt: c.dueAt instanceof Date ? c.dueAt.toISOString() : new Date(String(c.dueAt)).toISOString(),
     }));
 
     return NextResponse.json({ cards }, { status: 200 });
   } catch (err) {
     console.error("Error in GET /api/studysets/[slug]/next:", err);
+
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ errors: z.flattenError(err) }, { status: 400 });
+    }
+
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

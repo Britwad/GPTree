@@ -1,8 +1,8 @@
 // app/api/flashcards/queue/route.ts
 import { NextResponse } from "next/server";
-import { PrismaClient, Flashcard } from "@/app/generated/prisma";
+import prisma from "@/lib/prisma";
+import { Flashcard } from "@/app/generated/prisma";
 
-const prisma = new PrismaClient();
 
 function shuffle<T>(arr: T[]): T[] {
   for (let i = arr.length - 1; i > 0; i--) {
@@ -51,10 +51,18 @@ export async function GET(req: Request) {
       take: limit * 3
     });
 
+    const dueNowIds = dueNow.map((c) => c.id);
+
     let newItems: Flashcard[] = [];
     if (dueNow.length < limit) {
       newItems = await prisma.flashcard.findMany({
-        where: { userId, suspended: false, repetition: 0 },
+        where: {
+          userId,
+          suspended: false,
+          repetition: 0,
+          // exclude any ids already in dueNow
+          NOT: dueNowIds.length ? { id: { in: dueNowIds } } : undefined,
+        },
         take: limit - dueNow.length,
       });
     }

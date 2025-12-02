@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { DeleteNodeSchema } from "@/lib/validation_schemas";
+import { DeleteNodeSchema, UpdateNodeSchema } from "@/lib/validation_schemas";
+import { generateUpdateNodeStream } from "@/backend_helpers/groq_helpers";
 
 export async function GET(
   request: NextRequest,
@@ -198,5 +199,70 @@ export async function DELETE(
       { error: "Internal Server Error", detail },
       { status: 500 }
     );
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const params = await context.params;
+    const nodeId = parseInt(params.id, 10);
+
+    if (isNaN(nodeId)) {
+      return NextResponse.json(
+        { error: "Invalid node ID format" },
+        { status: 400 }
+      );
+    }
+
+    const body = await request.json();
+    // We expect body to contain { question, userId }
+    // We construct the full UpdateNode object
+    const updateParams = {
+        nodeId,
+        userId: body.userId,
+        question: body.question
+    };
+    
+    const parsed = UpdateNodeSchema.parse(updateParams);
+
+    const node = await prisma.node.findUnique({
+      where: { id: nodeId },
+    });
+
+    if (!node) {
+      return NextResponse.json(
+        { error: `Node with id ${nodeId} not found` },
+        { status: 404 }
+      );
+    }
+
+    // Verify user owns this node
+    if (node.userId !== parsed.userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 403 }
+      );
+    }
+
+    // Generate stream
+    const stream = await generateUpdateNodeStream(parsed.question, parsed);
+
+    return new NextResponse(stream, {
+        status: 200,
+        headers: {
+            "Content-Type": "application/json",
+            "Transfer-Encoding": "chunked",
+        },
+    });
+
+  } catch (err) {
+    console.error(`Error updating node:`, err);
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ errors: err.flatten() }, { status: 400 });
+    }
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

@@ -8,7 +8,7 @@ import TreeNode from '@/components/app/tree/TreeNode';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { type Node } from '@prisma/client';
-import { generateNode } from '@/frontend_helpers/node_helpers';
+import { generateNode, updateNode } from '@/frontend_helpers/node_helpers';
 import { CreateNode, NodeSchema } from '@/lib/validation_schemas';
 import { JSONParser } from "@streamparser/json-whatwg"
 import ConversationPanel from '@/components/app/tree/ConversationPanel';
@@ -17,6 +17,7 @@ interface FlowNode {
   id: string;
   position: XYPosition;
   data: Node;
+  selected?: boolean;
 }
 
 interface FlowEdge {
@@ -33,6 +34,8 @@ type StreamingNode = {
   content: string;
   followups?: string[];
   isOpen: boolean;
+  isUpdate?: boolean;
+  nodeId?: number;
 }
 
 const horizontalSpacing = 100;
@@ -159,7 +162,9 @@ export default function App() {
       }
       
       try {
-        const res = await fetch(`/api/nodes?treeHash=${params.treeHash}&userId=${session.user.id}`);
+        const res = await fetch(`/api/nodes?treeHash=${params.treeHash}&userId=${session.user.id}`, {
+          credentials: 'include'
+        });
         if (!res.ok) {
           throw new Error('Failed to fetch tree data');
         }
@@ -175,6 +180,14 @@ export default function App() {
         const { nodes: flowNodes, edges: flowEdges } = generateNodesAndEdges(data.nodes);
         setNodes(flowNodes);
         setEdges(flowEdges);
+
+        // Select the most recently created node
+        if (data.nodes && data.nodes.length > 0) {
+          const mostRecentNode = data.nodes.reduce((prev: Node, current: Node) => {
+            return new Date(prev.createdAt).getTime() > new Date(current.createdAt).getTime() ? prev : current;
+          });
+          setSelectedNode(mostRecentNode);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -210,7 +223,9 @@ export default function App() {
           // Check if we're creating a root node
           if (root) {
             // We need the tree ID to create the root node
-            const treeRes = await fetch(`/api/trees/${params.treeHash}`);
+            const treeRes = await fetch(`/api/trees/${params.treeHash}`, {
+          credentials: 'include'
+        });
             if (!treeRes.ok) {
               throw new Error('Failed to fetch tree info for root node creation');
             }
@@ -226,7 +241,16 @@ export default function App() {
           }
 
           // We need to set up a JSON parser to handle the streaming response
-          const stream = await generateNode(body);
+          let stream;
+          if (streamingNode?.isUpdate && streamingNode.nodeId) {
+             stream = await updateNode(streamingNode.nodeId, {
+                 question: streamingNode.question,
+                 userId: session.user.id
+             });
+          } else {
+             stream = await generateNode(body);
+          }
+
           const parser = new JSONParser({emitPartialValues: true, emitPartialTokens: true});
           const reader = stream.body?.pipeThrough(parser).getReader();
           if (!reader) {
@@ -258,6 +282,77 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streamingIsOpen]);
 
+  // Sync selection with ReactFlow nodes
+  useEffect(() => {
+    setNodes((nds) =>
+      nds.map((node) => ({
+        ...node,
+        selected: selectedNode?.id.toString() === node.id,
+      }))
+    );
+  }, [selectedNode]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!selectedNode) return;
+      // Ignore if typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      const currentNodeId = selectedNode.id;
+      
+      let nextNodeId: number | null = null;
+
+      if (e.key === 'ArrowUp') {
+        // Go to child (visually up)
+        // Find children
+        const children = nodes.filter(n => n.data.parentId === currentNodeId);
+        if (children.length > 0) {
+            // Pick the middle child
+            const middleIndex = Math.floor(children.length / 2);
+            // Sort children by X position to be sure
+            children.sort((a, b) => a.position.x - b.position.x);
+            nextNodeId = children[middleIndex].data.id;
+        }
+      } else if (e.key === 'ArrowDown') {
+        // Go to parent (visually down)
+        if (selectedNode.parentId) {
+            nextNodeId = selectedNode.parentId;
+        }
+      } else if (e.key === 'ArrowLeft') {
+        // Go to left sibling
+        if (selectedNode.parentId) {
+            const siblings = nodes.filter(n => n.data.parentId === selectedNode.parentId);
+            siblings.sort((a, b) => a.position.x - b.position.x);
+            const currentIndex = siblings.findIndex(n => n.id === currentNodeId.toString());
+            if (currentIndex > 0) {
+                nextNodeId = siblings[currentIndex - 1].data.id;
+            }
+        }
+      } else if (e.key === 'ArrowRight') {
+        // Go to right sibling
+        if (selectedNode.parentId) {
+            const siblings = nodes.filter(n => n.data.parentId === selectedNode.parentId);
+            siblings.sort((a, b) => a.position.x - b.position.x);
+            const currentIndex = siblings.findIndex(n => n.id === currentNodeId.toString());
+            if (currentIndex < siblings.length - 1) {
+                nextNodeId = siblings[currentIndex + 1].data.id;
+            }
+        }
+      }
+
+      if (nextNodeId) {
+        const nextNode = nodes.find(n => n.id === nextNodeId!.toString())?.data;
+        if (nextNode) {
+            setSelectedNode(nextNode);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedNode, nodes]);
+
   const onNodeClick = useCallback((event: React.MouseEvent, node: FlowNode) => {
     setSelectedNode(node.data);
   }, []);
@@ -270,16 +365,31 @@ export default function App() {
 
   const onNewNode = (newNode: CreateNode) => {
     // We need to tell React we're streaming a new node
-    setStreamingNode({
-      question: newNode.question,
-      userId: newNode.userId,
-      treeId: newNode.treeId,
-      parentId: newNode.parentId,
-      content: "",
-      followups: [],
-      isOpen: true
+    if (selectedNode?.status === 'clarify') {
+      setStreamingNode({
+        question: newNode.question,
+        userId: newNode.userId,
+        treeId: newNode.treeId,
+        parentId: newNode.parentId,
+        content: "",
+        followups: [],
+        isOpen: true,
+        isUpdate: true,
+        nodeId: selectedNode.id
       });
+    } else {
+      setStreamingNode({
+        question: newNode.question,
+        userId: newNode.userId,
+        treeId: newNode.treeId,
+        parentId: newNode.parentId,
+        content: "",
+        followups: [],
+        isOpen: true
+      });
+    }
     setStreamingIsOpen(true);
+    setSelectedNode(null);
   };
 
   const onNodeDeleted = async () => {
@@ -326,18 +436,36 @@ export default function App() {
    * @throws Error if fetching the latest node fails
    */
   const onStreamFinish = async () => {
-    // Fetch the latest node that was created
-    const node_res = await fetch(`/api/trees/${params.treeHash}/latest_node`);
-    if (!node_res.ok) {
-      throw new Error('Failed to fetch latest node after streaming');
+    let newNode: Node;
+    if (streamingNode?.isUpdate && streamingNode.nodeId) {
+         // Fetch the specific node
+         const res = await fetch(`/api/nodes/${streamingNode.nodeId}`);
+         if (!res.ok) throw new Error('Failed to fetch updated node');
+         const data = await res.json();
+         newNode = NodeSchema.parse(data);
+    } else {
+        // Fetch the latest node that was created
+        const node_res = await fetch(`/api/trees/${params.treeHash}/latest_node`, {
+          credentials: 'include'
+        });
+        if (!node_res.ok) {
+          throw new Error('Failed to fetch latest node after streaming');
+        }
+        const node_data = await node_res.json();
+        newNode = NodeSchema.parse(node_data.node);
     }
-    const node_data = await node_res.json();
-    const newNode = NodeSchema.parse(node_data.node);
+    
     setSelectedNode(newNode);
       
     // Add the new node to the existing flat list and regenerate layout
     const currentNodesData = nodes.map(n => n.data);
-    const updatedNodesList = [...currentNodesData, newNode];
+    let updatedNodesList;
+    
+    if (streamingNode?.isUpdate) {
+        updatedNodesList = currentNodesData.map(n => n.id === newNode.id ? newNode : n);
+    } else {
+        updatedNodesList = [...currentNodesData, newNode];
+    }
     
     const { nodes: flowNodes, edges: flowEdges } = generateNodesAndEdges(updatedNodesList);
     setNodes(flowNodes);

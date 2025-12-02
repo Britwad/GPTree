@@ -16,3 +16,18 @@ export async function generateNode(body: CreateNode) {
 
     return res;
 }
+
+export async function updateNode(nodeId: number, body: { question: string, userId: string }) {
+    const res = await fetch(`/api/nodes/${nodeId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data?.error || "Failed to update node");
+    }
+
+    return res;
+}

@@ -126,6 +126,37 @@ export default function ConversationPanel({
   };
 
   /*Panel reflects the same layout as node popup did*/
+  if (!node && !streamingIsOpen) {
+    return (
+      <div className="flex flex-col h-full p-6 overflow-y-auto animate-pulse">
+        {/* Header Text */}
+        <div 
+          className="pb-4" 
+          style={{ borderBottomColor: colors.lightGray, borderBottomWidth: "1px" }}
+        >
+          <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 py-4 space-y-6">
+          {/* Large Text (Content) */}
+          <div className="space-y-3">
+            <div className="h-4 bg-gray-200 rounded w-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-11/12"></div>
+            <div className="h-4 bg-gray-200 rounded w-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-4/5"></div>
+          </div>
+
+          {/* Smaller Text (Follow-ups) */}
+          <div className="space-y-2 pt-4">
+            <div className="h-10 bg-gray-200 rounded w-full"></div>
+            <div className="h-10 bg-gray-200 rounded w-full"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full p-6 overflow-y-auto">
       
@@ -134,7 +165,7 @@ export default function ConversationPanel({
         className="pb-4 flex justify-between items-center"
         style={{ borderBottomColor: colors.lightGray, borderBottomWidth: "1px" }}
       >
-        <h2 className="text-2xl font-bold">{nodeQuestion || "Select a node"}</h2>
+        <h2 className="text-2xl font-bold">{nodeQuestion}</h2>
         {node && (
           <button
             onClick={() => setShowDeleteModal(true)}

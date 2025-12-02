@@ -17,6 +17,7 @@ interface FlowNode {
   id: string;
   position: XYPosition;
   data: Node;
+  selected?: boolean;
 }
 
 interface FlowEdge {
@@ -177,6 +178,14 @@ export default function App() {
         const { nodes: flowNodes, edges: flowEdges } = generateNodesAndEdges(data.nodes);
         setNodes(flowNodes);
         setEdges(flowEdges);
+
+        // Select the most recently created node
+        if (data.nodes && data.nodes.length > 0) {
+          const mostRecentNode = data.nodes.reduce((prev: Node, current: Node) => {
+            return new Date(prev.createdAt).getTime() > new Date(current.createdAt).getTime() ? prev : current;
+          });
+          setSelectedNode(mostRecentNode);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -261,6 +270,77 @@ export default function App() {
     doStream();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streamingIsOpen]);
+
+  // Sync selection with ReactFlow nodes
+  useEffect(() => {
+    setNodes((nds) =>
+      nds.map((node) => ({
+        ...node,
+        selected: selectedNode?.id.toString() === node.id,
+      }))
+    );
+  }, [selectedNode]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!selectedNode) return;
+      // Ignore if typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      const currentNodeId = selectedNode.id;
+      
+      let nextNodeId: number | null = null;
+
+      if (e.key === 'ArrowUp') {
+        // Go to child (visually up)
+        // Find children
+        const children = nodes.filter(n => n.data.parentId === currentNodeId);
+        if (children.length > 0) {
+            // Pick the middle child
+            const middleIndex = Math.floor(children.length / 2);
+            // Sort children by X position to be sure
+            children.sort((a, b) => a.position.x - b.position.x);
+            nextNodeId = children[middleIndex].data.id;
+        }
+      } else if (e.key === 'ArrowDown') {
+        // Go to parent (visually down)
+        if (selectedNode.parentId) {
+            nextNodeId = selectedNode.parentId;
+        }
+      } else if (e.key === 'ArrowLeft') {
+        // Go to left sibling
+        if (selectedNode.parentId) {
+            const siblings = nodes.filter(n => n.data.parentId === selectedNode.parentId);
+            siblings.sort((a, b) => a.position.x - b.position.x);
+            const currentIndex = siblings.findIndex(n => n.id === currentNodeId.toString());
+            if (currentIndex > 0) {
+                nextNodeId = siblings[currentIndex - 1].data.id;
+            }
+        }
+      } else if (e.key === 'ArrowRight') {
+        // Go to right sibling
+        if (selectedNode.parentId) {
+            const siblings = nodes.filter(n => n.data.parentId === selectedNode.parentId);
+            siblings.sort((a, b) => a.position.x - b.position.x);
+            const currentIndex = siblings.findIndex(n => n.id === currentNodeId.toString());
+            if (currentIndex < siblings.length - 1) {
+                nextNodeId = siblings[currentIndex + 1].data.id;
+            }
+        }
+      }
+
+      if (nextNodeId) {
+        const nextNode = nodes.find(n => n.id === nextNodeId!.toString())?.data;
+        if (nextNode) {
+            setSelectedNode(nextNode);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedNode, nodes]);
 
   const onNodeClick = useCallback((event: React.MouseEvent, node: FlowNode) => {
     setSelectedNode(node.data);

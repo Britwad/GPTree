@@ -3,7 +3,7 @@ import { Handle, Position, NodeProps } from '@xyflow/react';
 import { type Node as PrismaNode } from '@prisma/client';
 import { colors } from '@/lib/colors';
 
-function TreeNode({ data, onClick }: NodeProps & { onClick?: (node: PrismaNode) => void }) {
+function TreeNode({ data, onClick, selected }: NodeProps & { onClick?: (node: PrismaNode) => void }) {
   const nodeData = data as PrismaNode;
 
   return (
@@ -14,11 +14,11 @@ function TreeNode({ data, onClick }: NodeProps & { onClick?: (node: PrismaNode) 
         style={{
           backgroundColor: colors.white,
           borderWidth: '2px',
-          borderColor: colors.lightGray,
+          borderColor: selected ? colors.green : colors.lightGray,
           color: colors.darkGray,
         }}
         onMouseEnter={(e) => e.currentTarget.style.borderColor = colors.green}
-        onMouseLeave={(e) => e.currentTarget.style.borderColor = colors.lightGray}
+        onMouseLeave={(e) => e.currentTarget.style.borderColor = selected ? colors.green : colors.lightGray}
       >
         <span className="line-clamp-3 break-words overflow-wrap-anywhere">
           {nodeData.name}

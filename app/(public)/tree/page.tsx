@@ -23,6 +23,7 @@ export default function App() {
     const res = await fetch("/api/trees", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: 'include',
       body: JSON.stringify({ name: prompt, userId: session?.user?.id }),
     });
 

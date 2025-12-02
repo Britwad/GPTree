@@ -2,25 +2,22 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import SpacedRep from "./SpacedRep";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 
-export default function Page() {
+function StudyContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const studyset = searchParams?.get("studyset") ?? undefined;
   const { data: session, status } = useSession();
-
   const [userId, setUserId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (status === "loading") return;
-
     if (status !== "authenticated" || !session?.user) {
       router.push("/");
       return;
     }
-
     setUserId(session.user.id);
   }, [status, session, router]);
 
@@ -34,9 +31,14 @@ export default function Page() {
         Showing queue for{" "}
         <strong>{studyset ? `studyset: ${studyset}` : "default studyset"}</strong>.
       </p>
-
-      {/* Note: FlashcardQueue currently expects only userId */}
       <SpacedRep userId={userId!} />
     </div>
+  );
+}
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <StudyContent />
+    </Suspense>
   );
 }

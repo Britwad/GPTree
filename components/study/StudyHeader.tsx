@@ -35,12 +35,12 @@ export default function StudyHeader({
       }}
     >
       <div className="container mx-auto px-6 py-4">
-        <div className="flex items-center gap-4 mb-3">
-          <Button variant="ghost" size="sm" onClick={onExit}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Exit Study
-          </Button>
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-4 mb-3">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={onExit}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Exit Study
+            </Button>
             <div>
               <p className="font-medium" style={{ color: colors.darkGray }}>
                 {treeName || "Study Session"}
@@ -48,13 +48,13 @@ export default function StudyHeader({
               <p className="text-xs" style={{ color: colors.darkGray }}>
                 Card {currentCardIndex + 1} of {totalCards}
               </p>
-              {totalReviewed > 0 && (
-                <p className="text-[11px]" style={{ color: colors.darkGray }}>
-                  Hard {hard} · Good {good} · Easy {easy}
-                </p>
-              )}
             </div>
           </div>
+          {totalReviewed > 0 && (
+            <p className="text-[11px]" style={{ color: colors.darkGray }}>
+              Hard {hard} · Good {good} · Easy {easy}
+            </p>
+          )}
         </div>
         <Progress value={progressPercent} className="h-1.5" />
       </div>

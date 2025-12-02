@@ -280,6 +280,7 @@ export default function App() {
       isOpen: true
       });
     setStreamingIsOpen(true);
+    setSelectedNode(null);
   };
 
   const onNodeDeleted = async () => {

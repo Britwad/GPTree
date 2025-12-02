@@ -184,7 +184,7 @@ export default function ConversationPanel({
         )}
 
         {/* Follow-ups */}
-        {(node?.followups || (streamingIsOpen && streamingFollowups)) && (
+        {(node?.followups || (streamingIsOpen && streamingFollowups && streamingFollowups.length > 0)) && (
           <div>
             <h3 className="text-lg font-semibold mb-3">Suggested Follow-ups</h3>
 

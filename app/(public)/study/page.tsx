@@ -1,67 +1,42 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import StudyPage from "@/components/study/StudyPage";
+import { useRouter, useSearchParams } from "next/navigation";
+import SpacedRep from "./SpacedRep";
 import { useState, useEffect } from "react";
-import type { Tree } from "@/lib/App";
 import { useSession } from "next-auth/react";
 
 export default function Page() {
   const router = useRouter();
-  const [trees, setTrees] = useState<Tree[]>([]);
-  const { data:session, status } = useSession();
+  const searchParams = useSearchParams();
+  const studyset = searchParams?.get("studyset") ?? undefined;
+  const { data: session, status } = useSession();
+
+  const [userId, setUserId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    if (status === "loading") {
-      return;
-    }
+    if (status === "loading") return;
 
     if (status !== "authenticated" || !session?.user) {
-      console.log("No user session, redirecting to /");
       router.push("/");
       return;
     }
 
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(`/api/trees?userId=${encodeURIComponent(session.user.id)}`);
-        const data = await res.json();
-        
-        if (!cancelled) {
-          setTrees(data.trees || []);
-        }
-      } catch (e) {
-        console.error("Failed to fetch trees", e);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+    setUserId(session.user.id);
   }, [status, session, router]);
 
-  if (status === "loading") {
-    return <div>Loading session...</div>;
-  }
-
-  if (status !== "authenticated") {
-    return <div>Redirecting...</div>;
-  }
+  if (status === "loading") return <div>Loading session...</div>;
+  if (status !== "authenticated") return <div>Redirecting...</div>;
 
   return (
-    <StudyPage
-      trees={trees}
-      userId={session.user.id}
-      onNavigate={(p) => {
-        if (p === "dashboard") router.push("/tree");
-        else if (p === "landing" || p === "study") router.push("/");
-        else router.push("/study");
-      }}
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      onUpdateFlashcard={(_id, _updates) => {
-        // later: call your API to persist
-      }}
-    />
+    <div className="max-w-3xl mx-auto py-10">
+      <h1 className="text-3xl font-bold mb-6">Flashcard Queue</h1>
+      <p className="text-sm text-gray-600 mb-4">
+        Showing queue for{" "}
+        <strong>{studyset ? `studyset: ${studyset}` : "default studyset"}</strong>.
+      </p>
+
+      {/* Note: FlashcardQueue currently expects only userId */}
+      <SpacedRep userId={userId!} />
+    </div>
   );
 }

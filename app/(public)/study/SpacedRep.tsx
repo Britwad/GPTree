@@ -18,7 +18,7 @@ interface UiCard {
   studySetId: number | null;
 }
 
-export default function FlashcardQueue({ userId }: { userId: string }) {
+export default function SpacedRep({ userId }: { userId: string }) {
   const [cards, setCards] = useState<UiCard[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

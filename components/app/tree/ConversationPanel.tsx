@@ -162,24 +162,24 @@ export default function ConversationPanel({
       
       {/* HEADER */}
       <div
-        className="pb-4 flex justify-between items-center"
+        className="pb-4 flex justify-between items-center gap-4"
         style={{ borderBottomColor: colors.lightGray, borderBottomWidth: "1px" }}
       >
         <h2 className="text-2xl font-bold">{nodeQuestion}</h2>
         {node && (
           <button
-            onClick={() => setShowDeleteModal(true)}
-            className="px-3 py-2 rounded-lg transition-colors text-white flex items-center gap-2"
-            style={{ backgroundColor: colors.green }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = colors.darkGreen)
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = colors.green)
-            }
-            title="Delete this node"
+        onClick={() => setShowDeleteModal(true)}
+        className="px-3 py-2 rounded-lg transition-colors text-white flex items-center gap-2"
+        style={{ backgroundColor: colors.green }}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.backgroundColor = colors.darkGreen)
+        }
+        onMouseLeave={(e) =>
+          (e.currentTarget.style.backgroundColor = colors.green)
+        }
+        title="Delete this node"
           >
-            <Trash size={20} weight="bold" />
+        <Trash size={20} weight="bold" />
           </button>
         )}
       </div>

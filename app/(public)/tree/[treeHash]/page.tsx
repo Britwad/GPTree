@@ -8,7 +8,7 @@ import TreeNode from '@/components/app/tree/TreeNode';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { type Node } from '@prisma/client';
-import { generateNode } from '@/frontend_helpers/node_helpers';
+import { generateNode, updateNode } from '@/frontend_helpers/node_helpers';
 import { CreateNode, NodeSchema } from '@/lib/validation_schemas';
 import { JSONParser } from "@streamparser/json-whatwg"
 import ConversationPanel from '@/components/app/tree/ConversationPanel';
@@ -34,6 +34,8 @@ type StreamingNode = {
   content: string;
   followups?: string[];
   isOpen: boolean;
+  isUpdate?: boolean;
+  nodeId?: number;
 }
 
 const horizontalSpacing = 100;
@@ -239,7 +241,16 @@ export default function App() {
           }
 
           // We need to set up a JSON parser to handle the streaming response
-          const stream = await generateNode(body);
+          let stream;
+          if (streamingNode?.isUpdate && streamingNode.nodeId) {
+             stream = await updateNode(streamingNode.nodeId, {
+                 question: streamingNode.question,
+                 userId: session.user.id
+             });
+          } else {
+             stream = await generateNode(body);
+          }
+
           const parser = new JSONParser({emitPartialValues: true, emitPartialTokens: true});
           const reader = stream.body?.pipeThrough(parser).getReader();
           if (!reader) {
@@ -354,15 +365,29 @@ export default function App() {
 
   const onNewNode = (newNode: CreateNode) => {
     // We need to tell React we're streaming a new node
-    setStreamingNode({
-      question: newNode.question,
-      userId: newNode.userId,
-      treeId: newNode.treeId,
-      parentId: newNode.parentId,
-      content: "",
-      followups: [],
-      isOpen: true
+    if (selectedNode?.status === 'clarify') {
+      setStreamingNode({
+        question: newNode.question,
+        userId: newNode.userId,
+        treeId: newNode.treeId,
+        parentId: newNode.parentId,
+        content: "",
+        followups: [],
+        isOpen: true,
+        isUpdate: true,
+        nodeId: selectedNode.id
       });
+    } else {
+      setStreamingNode({
+        question: newNode.question,
+        userId: newNode.userId,
+        treeId: newNode.treeId,
+        parentId: newNode.parentId,
+        content: "",
+        followups: [],
+        isOpen: true
+      });
+    }
     setStreamingIsOpen(true);
     setSelectedNode(null);
   };
@@ -411,20 +436,36 @@ export default function App() {
    * @throws Error if fetching the latest node fails
    */
   const onStreamFinish = async () => {
-    // Fetch the latest node that was created
-    const node_res = await fetch(`/api/trees/${params.treeHash}/latest_node`, {
-      credentials: 'include'
-    });
-    if (!node_res.ok) {
-      throw new Error('Failed to fetch latest node after streaming');
+    let newNode: Node;
+    if (streamingNode?.isUpdate && streamingNode.nodeId) {
+         // Fetch the specific node
+         const res = await fetch(`/api/nodes/${streamingNode.nodeId}`);
+         if (!res.ok) throw new Error('Failed to fetch updated node');
+         const data = await res.json();
+         newNode = NodeSchema.parse(data);
+    } else {
+        // Fetch the latest node that was created
+        const node_res = await fetch(`/api/trees/${params.treeHash}/latest_node`, {
+          credentials: 'include'
+        });
+        if (!node_res.ok) {
+          throw new Error('Failed to fetch latest node after streaming');
+        }
+        const node_data = await node_res.json();
+        newNode = NodeSchema.parse(node_data.node);
     }
-    const node_data = await node_res.json();
-    const newNode = NodeSchema.parse(node_data.node);
+    
     setSelectedNode(newNode);
       
     // Add the new node to the existing flat list and regenerate layout
     const currentNodesData = nodes.map(n => n.data);
-    const updatedNodesList = [...currentNodesData, newNode];
+    let updatedNodesList;
+    
+    if (streamingNode?.isUpdate) {
+        updatedNodesList = currentNodesData.map(n => n.id === newNode.id ? newNode : n);
+    } else {
+        updatedNodesList = [...currentNodesData, newNode];
+    }
     
     const { nodes: flowNodes, edges: flowEdges } = generateNodesAndEdges(updatedNodesList);
     setNodes(flowNodes);

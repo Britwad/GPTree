@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { StructuredNodeSchema, FlashcardsSchema, FlashcardInput, StructuredNode, CreateNode } from "@/lib/validation_schemas";
+import { StructuredNodeSchema, FlashcardsSchema, FlashcardInput, StructuredNode, CreateNode, UpdateNode } from "@/lib/validation_schemas";
 import Groq from "groq-sdk";
 import { createFlashcards } from "./prisma_helpers";
 
@@ -68,14 +68,15 @@ export async function generateFlashcards(params: {
 
 
 
-/**
- * 
- * @param messages The messages we want to give Groq. Should contain a system
- * prompt and a user prompt
- * @param params The parameters for creating a node in the database
- * @returns 
- */
-export async function groqNodeAndFlashcards(messages: Message[], params: CreateNode) {
+import { type Node } from "@prisma/client";
+
+// ... existing imports ...
+
+// Generic function to handle streaming from Groq and processing the result
+async function streamGroqResponse(
+    messages: Message[],
+    onComplete: (fullResponse: string) => Promise<Node>
+) {
     try {
         // Validate input
         if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -96,35 +97,22 @@ export async function groqNodeAndFlashcards(messages: Message[], params: CreateN
             stream: true,
         });
 
-        // We need a way to store the LLM output in our database as it streams
-        // so we will hold it in this variable and append to it as we go
         let fullResponse = "";
-        // Now we want to make a readable stream to return
         return new ReadableStream({
             async start(controller) {
                 try {
-                    // We read from the stream from Groq one chunk at a time
                     for await (const chunk of upstream) {
-                        // If that chunk has content, we enqueue it
-                        // (i.e. push it into the stream to the client)
                         const content = chunk.choices[0]?.delta?.content;
                         if (content) controller.enqueue(new TextEncoder().encode(content));
-
-                        // We also append it to the full response
                         fullResponse += content || "";
                     }
 
-                    // Our stream is over, so we can store the full response
-                    const node = await storeResponseAsNode(parseStructuredNode(fullResponse), params);
-
-                    // Then we make flashcards for it
+                    const node = await onComplete(fullResponse);
                     await createFlashcards(node);
 
                 } catch (err) {
-                    // If there's an error, we report it
                     controller.error(err);
                 } finally {
-                    // And we close the stream when done
                     controller.close();
                 }
             },
@@ -133,6 +121,19 @@ export async function groqNodeAndFlashcards(messages: Message[], params: CreateN
         console.error("Error getting a response from Groq:", err);
         throw err;
     }
+}
+
+/**
+ * 
+ * @param messages The messages we want to give Groq. Should contain a system
+ * prompt and a user prompt
+ * @param params The parameters for creating a node in the database
+ * @returns 
+ */
+export async function groqNodeAndFlashcards(messages: Message[], params: CreateNode) {
+    return streamGroqResponse(messages, async (fullResponse) => {
+        return storeResponseAsNode(parseStructuredNode(fullResponse), params);
+    });
 }
 
 // Helper function for storing a response in our database
@@ -147,6 +148,7 @@ async function storeResponseAsNode(response: StructuredNode, params: CreateNode)
             treeId: params.treeId,
             userId: params.userId,
             parentId: params.parentId,
+            status: response.status,
         },
     });
 
@@ -184,6 +186,35 @@ export async function generateNodeStream(prompt: string, params: CreateNode) {
     // We're streaming to the backend right now but eventually
     // we will stream to the client
     const stream = await groqNodeAndFlashcards([
+        { role: "system", content: nodeSystemPrompt },
+        { role: "user", content: `I want to learn about: ${prompt}.` }
+    ], params);
+
+    return stream;
+}
+
+export async function groqUpdateNodeAndFlashcards(messages: Message[], params: UpdateNode) {
+    return streamGroqResponse(messages, async (fullResponse) => {
+        return updateResponseAsNode(parseStructuredNode(fullResponse), params);
+    });
+}
+
+async function updateResponseAsNode(response: StructuredNode, params: UpdateNode) {
+    const node = await prisma.node.update({
+        where: { id: params.nodeId },
+        data: {
+            name: response.name,
+            question: params.question,
+            content: response.content,
+            followups: response.followups,
+            status: response.status,
+        },
+    });
+    return node;
+}
+
+export async function generateUpdateNodeStream(prompt: string, params: UpdateNode) {
+    const stream = await groqUpdateNodeAndFlashcards([
         { role: "system", content: nodeSystemPrompt },
         { role: "user", content: `I want to learn about: ${prompt}.` }
     ], params);
@@ -235,8 +266,8 @@ Formatting for "content":
 - Keep total length under 500 words.
 
 Formatting for "followups":
-- In "success": 2–5 concise, distinct educational follow-up questions.
-- In "clarify": 0–3 optional suggestions for directed questions.
+- In "success": 2–5 concise, distinct educational follow-up questions. They should be directly relevant to the content. Things that may have been brought up without proper context or explanation.
+- In "clarify": 0–3 optional suggestions for directed questions. These must be questions that would not need additional clarification.
 
 Output **only** the JSON. No preamble, commentary, or backticks.
 

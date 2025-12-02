@@ -178,7 +178,15 @@ export const NodeSchema = z.object({
     id: z.number().min(1),
     content: z.string().min(1),
     followups: z.array(z.string()),
+    status: z.string(),
     createdAt: z.coerce.date(),
     updatedAt: z.coerce.date(),
 });
 export type ValidationNode = z.infer<typeof NodeSchema>;
+
+export const UpdateNodeSchema = z.object({
+    nodeId: z.number().min(1),
+    userId: z.string().min(1),
+    question: z.string().min(1).max(500),
+});
+export type UpdateNode = z.infer<typeof UpdateNodeSchema>;

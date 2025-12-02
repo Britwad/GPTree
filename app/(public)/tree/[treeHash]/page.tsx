@@ -392,6 +392,24 @@ export default function App() {
     setSelectedNode(null);
   };
 
+  const onRegenerateNode = (node: Node) => {
+    if (!session?.user?.id) return;
+
+    setStreamingNode({
+      question: node.question,
+      userId: session.user.id,
+      treeId: node.treeId,
+      parentId: node.parentId,
+      content: "",
+      followups: [],
+      isOpen: true,
+      isUpdate: true,
+      nodeId: node.id
+    });
+    setStreamingIsOpen(true);
+    setSelectedNode(null);
+  };
+
   const onNodeDeleted = async () => {
     // Refresh the tree data after node deletion
     if (!session?.user?.id) return;
@@ -521,6 +539,7 @@ export default function App() {
           onNewNode={onNewNode}
           onNodeDeleted={onNodeDeleted}
           onTreeDeleted={onTreeDeleted}
+          onRegenerateNode={onRegenerateNode}
           streamingQuestion={streamingNode?.question}
           streamingContent={streamingNode?.content}
           streamingFollowups={streamingNode?.followups}

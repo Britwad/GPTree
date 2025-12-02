@@ -10,9 +10,9 @@ const CreateFlashcardSchema = z.object({
   nodeId: z.number().int().positive(),
 });
 
-export async function POST(request: NextRequest, { params }: { params: { slug: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
-    const { slug } = params;
+    const { slug } = await params;
     if (!slug) return NextResponse.json({ error: "slug required" }, { status: 400 });
 
     const body = await request.json();

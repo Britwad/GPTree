@@ -13,7 +13,7 @@ const NextBodySchema = z.object({
 type NextBody = z.infer<typeof NextBodySchema>;
 
 /* typed params shape */
-type Params = { params: { slug: string } };
+type Params = { params: Promise<{ slug: string }> };
 
 /* typed payload returned to client */
 type CardPayload = {
@@ -70,7 +70,7 @@ function shuffle<T>(arr: T[]): T[] {
 /* POST: return next cards for a studyset slug */
 export async function POST(request: NextRequest, { params }: Params) {
   try {
-    const { slug } = params;
+    const { slug } = await params;
     if (!slug) {
       return NextResponse.json({ error: "slug required" }, { status: 400 });
     }
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest, { params }: Params) {
 /* GET: convenience/debug endpoint */
 export async function GET(request: NextRequest, { params }: Params) {
   try {
-    const { slug } = params;
+    const { slug } = await params;
     if (!slug) {
       return NextResponse.json({ error: "slug required" }, { status: 400 });
     }

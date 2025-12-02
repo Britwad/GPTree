@@ -65,11 +65,11 @@ function updateAfterReview(card: CardFromDb, quality: number) {
   };
 }
 
-type Params = { params: { slug: string } };
+type Params = { params: Promise<{ slug: string }> };
 
 export async function POST(request: NextRequest, { params }: Params): Promise<NextResponse> {
   try {
-    const { slug } = params;
+    const { slug } = await params;
     if (!slug) return NextResponse.json({ error: "slug required" }, { status: 400 });
 
     // Parse + validate body safely (no `any`)

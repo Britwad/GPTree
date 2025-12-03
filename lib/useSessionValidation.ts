@@ -13,7 +13,7 @@ import { useEffect } from "react";
  * }
  */
 export function useSessionValidation() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
   useEffect(() => {
     if (status === "authenticated") {

@@ -18,6 +18,7 @@ model User {
   nodes         Node[]
   sessions      Session[]
   trees         Tree[]
+  studySets     StudySet[]
 }
 
 model Account {
@@ -85,10 +86,36 @@ model Node {
 }
 
 model Flashcard {
-  id      Int    @id @default(autoincrement())
-  name    String
-  content String
-  nodeId  Int
-  userId  String
-  node    Node   @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  id                Int       @id @default(autoincrement())
+  name              String
+  content           String
+  nodeId            Int
+  userId            String
+  node              Node      @relation(fields: [nodeId], references: [id])
+  // fields for spaced rep
+  repetition        Int       @default(0)
+  intervalDays      Int       @default(0)
+  easeFactor        Float     @default(2.5)
+  dueAt             DateTime  @default(now())
+  lastReviewedAt    DateTime?
+  lapses            Int       @default(0)
+  suspended         Boolean   @default(false)
+  learningStepIndex Int?
+  // fields for study sets
+  studySetId        Int?
+  studySet          StudySet? @relation(fields: [studySetId], references: [id])
+
+  @@index([dueAt])
+  @@index([studySetId])
+}
+
+model StudySet {
+  id        Int       @id @default(autoincrement())
+  title     String
+  slug      String    @unique  // used for /study/[slug]
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  flashcards Flashcard[]
 }

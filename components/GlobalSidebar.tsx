@@ -6,7 +6,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import useSWR from "swr";
-import { Tree, BookOpen } from 'phosphor-react';
+import { Tree, BookOpen, Cards } from 'phosphor-react';
 import { type PaginatedTreesResponse } from "@/lib/validation_schemas";
 import { colors } from "@/lib/colors";
 
@@ -87,6 +87,21 @@ export default function GlobalSidebar() {
                     >
                         <Tree size={18} weight="fill" />
                         Create New Tree
+                    </Link>
+
+                    {/* Study Button */}
+                    <Link
+                        href="/flashcards"
+                        className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
+                        style={{
+                            backgroundColor: pathname === "/flashcards" ? colors.superLightGreen : 'transparent',
+                            color: pathname === "/flashcards" ? colors.green : colors.darkGray
+                        }}
+                        onMouseEnter={(e) => pathname !== "/flashcards" && (e.currentTarget.style.backgroundColor = colors.lightGreenHover)}
+                        onMouseLeave={(e) => pathname !== "/flashcards" && (e.currentTarget.style.backgroundColor = 'transparent')}
+                    >
+                        <Cards size={18} weight="fill" />
+                        View Flashcards
                     </Link>
 
                     {/* Study Button */}

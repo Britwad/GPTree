@@ -10,7 +10,7 @@ type StudyPageProps = {
   trees: Tree[];
   userId: string;
   onNavigate: (page: AppState["currentPage"]) => void;
-  onUpdateFlashcard: (flashcardId: number, updates: Partial<Flashcard>) => void;
+  onUpdateFlashcard?: (flashcardId: number, updates: Partial<Flashcard>) => void;
 };
 
 // Types for the API response
@@ -45,7 +45,6 @@ export default function StudyPage({
   trees,
   userId,
   onNavigate,
-  onUpdateFlashcard,
 }: StudyPageProps) {
   const [selectedTreeIds, setSelectedTreeIds] = useState<number[]>(
     trees.map((t) => t.id)

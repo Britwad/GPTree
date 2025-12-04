@@ -32,25 +32,6 @@ export default function StudySetDetailPage() {
 
   const slug = params?.slug as string;
 
-  useEffect(() => {
-    if (status === "loading") {
-      return;
-    }
-
-    if (status !== "authenticated" || !session?.user) {
-      router.push("/");
-      return;
-    }
-
-    if (!slug) {
-      setError("Invalid studyset");
-      setIsLoading(false);
-      return;
-    }
-
-    fetchStudyset();
-  }, [status, session, router, slug]);
-
   const fetchStudyset = async () => {
     setIsLoading(true);
     setError(null);
@@ -74,6 +55,26 @@ export default function StudySetDetailPage() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (status === "loading") {
+      return;
+    }
+
+    if (status !== "authenticated" || !session?.user) {
+      router.push("/");
+      return;
+    }
+
+    if (!slug) {
+      setError("Invalid studyset");
+      setIsLoading(false);
+      return;
+    }
+
+    fetchStudyset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, session, router, slug]);
 
   if (status === "loading") {
     return (
@@ -147,7 +148,7 @@ export default function StudySetDetailPage() {
                 Flashcard viewing functionality will be implemented here.
               </p>
               <p className="text-sm mt-2" style={{ color: colors.darkGray }}>
-                This is a placeholder page for Yana's work.
+                This is a placeholder page for Yana&apos;s work.
               </p>
             </div>
           </div>

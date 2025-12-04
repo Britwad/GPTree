@@ -29,19 +29,6 @@ export default function StudySetsListPage() {
   const [editingStudyset, setEditingStudyset] = useState<StudySet | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (status === "loading") {
-      return;
-    }
-
-    if (status !== "authenticated" || !session?.user) {
-      router.push("/");
-      return;
-    }
-
-    fetchStudysets();
-  }, [status, session, router]);
-
   const fetchStudysets = async () => {
     if (!session?.user?.id) return;
 
@@ -58,6 +45,20 @@ export default function StudySetsListPage() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (status === "loading") {
+      return;
+    }
+
+    if (status !== "authenticated" || !session?.user) {
+      router.push("/");
+      return;
+    }
+
+    fetchStudysets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, session, router]);
 
   const handleCreate = async (title: string) => {
     if (!session?.user?.id) return;

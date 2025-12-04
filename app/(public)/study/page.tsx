@@ -11,7 +11,6 @@ function StudyContent() {
   const studyset = searchParams?.get("studyset") ?? undefined;
   const { data: session, status } = useSession();
   const [userId, setUserId] = useState<string | undefined>(undefined);
-  const [trees, setTrees] = useState<Array<{ id: string; name: string }>>([]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -20,26 +19,6 @@ function StudyContent() {
       return;
     }
     setUserId(session.user.id);
-
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(`/api/trees?userId=${encodeURIComponent(session.user.id)}`, {
-          credentials: 'include'
-        });
-        const data = await res.json();
-        
-        if (!cancelled) {
-          setTrees(data.trees || []);
-        }
-      } catch (e) {
-        console.error("Failed to fetch trees", e);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
   }, [status, session, router]);
 
   if (status === "loading") return <div>Loading session...</div>;

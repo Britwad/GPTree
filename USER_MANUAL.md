@@ -17,17 +17,16 @@ repetition for better long-term memory.
 
 
 ## **2. Running GPTree**
-a. Open browser with http://localhost:3000 
+a. Open browser with https://gptree-one.vercel.app/ 
 b. Either sign in with you email or continue with Google
 
 
 ## **3. Using GPTree**
-a. Create an account 
+a. Create an account: 
     Add your email into the text box or signing in with Google
-    Once logged in, you'll see your dashboard listing all of your trees
+    Once logged in, you'll see the listing all of your trees and a prompt to create a new tree
 
 b. Create a Tree
-    Click "New Tree"
     Enter a topic into the prompt box
     GPTree will generate a root node explaining the topic
     The Tree will display the root node which you could click to go back to if at any time you
@@ -37,24 +36,24 @@ c. Creating new nodes
     Click any node in your tree to open it
     There you will see the original question and response, key points, and suggested follow-up
     questions
-    Click a follow-up to create a new node branching off the current node, or manually click new
-    Node to go into a sub topic
+    Click a follow-up to create a new node branching off the current node, or manually write a new
+    question to go into a sub topic
 
 d. Review and Navigate trees
-    Use the Tree view page to see your learning structure
+    Use the Tree view page to see your learning structure and the conversation within that tree
     Click any node to read its contents or add new questions
     Use the side panel to switch between different trees
 
-e. Generate Flashcards
-    In any node, click "Generate Flashcards"
-    GPTree will automatically create cards based off the current tree nodes contents
-    With the cards you can edit or delete them and save them to a deck tied with the current tree
+e. Going through Flashcards
+    In the flashcard page, select which topics you would like to review
+    GPTree will automatically create cards based off the content in the tree topics
+    With the cards you can go through concepts and ideas, rating the difficulty as you go along
 
 f. Using Spaced Repetition
-    Go to "Review Mode" or "Spaced Repetition" in the side branch
-    GPTree will show flashcards of all the trees you have created
-    You can manually click multiple trees in order to focus on only a subset of all created trees 
-    Rate your recall as "hard", "good", or "easy", where the app will adjust based off of these
+    Go to Study Page to review all topics where GPTree will show flashcards of all the 
+    trees the user have created
+    GPTree will automatically generate the order of which to review the flashcards based off the
+    difficutly in which you chose the flashcards as you reviewed them
 
 
 How to report a bug. This should include not just the mechanics (a pointer to your issue tracker), but also 

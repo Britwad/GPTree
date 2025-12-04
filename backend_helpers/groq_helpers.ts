@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
-import { StructuredNodeSchema, FlashcardsSchema, FlashcardInput, StructuredNode, CreateNode, UpdateNode } from "@/lib/validation_schemas";
+import { StructuredNodeSchema, FlashcardsSchema, FlashcardInput, StructuredNode, CreateNode, UpdateNode, CreatedFlashcard } from "@/lib/validation_schemas";
 import Groq from "groq-sdk";
-import { createFlashcards } from "./prisma_helpers";
+import { type Node } from "@prisma/client";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 export type Message = { role: "system" | "user" | "assistant" | "developer"; content: string };
@@ -65,12 +65,6 @@ export async function generateFlashcards(params: {
 
     return validationResult.data;
 }
-
-
-
-import { type Node } from "@prisma/client";
-
-// ... existing imports ...
 
 // Generic function to handle streaming from Groq and processing the result
 async function streamGroqResponse(
@@ -178,25 +172,20 @@ export function parseStructuredNode(content: string): StructuredNode {
  *  for the conent of a new node
  * @param prompt The prompt to send to the LLM
  * @param params The parameters for creating the node (See {@link CreateNode } type)
+ * @param history The conversation history leading up to this node
  * @returns A ReadableStream that streams the LLM response
 */
-export async function generateNodeStream(prompt: string, params: CreateNode) {
+export async function generateNodeStream(prompt: string, params: CreateNode, history: Message[] = []) {
 
     // Generate content for the root node based on the prompt
     // We're streaming to the backend right now but eventually
     // we will stream to the client
-    const stream = await groqNodeAndFlashcards([
+    const messages = [
         { role: "system", content: nodeSystemPrompt },
+        ...history,
         { role: "user", content: `I want to learn about: ${prompt}.` }
-    ], params);
-
-    return stream;
-}
-
-export async function groqUpdateNodeAndFlashcards(messages: Message[], params: UpdateNode) {
-    return streamGroqResponse(messages, async (fullResponse) => {
-        return updateResponseAsNode(parseStructuredNode(fullResponse), params);
-    });
+    ] as Message[];
+    return await groqNodeAndFlashcards(messages, params);
 }
 
 async function updateResponseAsNode(response: StructuredNode, params: UpdateNode) {
@@ -213,13 +202,16 @@ async function updateResponseAsNode(response: StructuredNode, params: UpdateNode
     return node;
 }
 
-export async function generateUpdateNodeStream(prompt: string, params: UpdateNode) {
-    const stream = await groqUpdateNodeAndFlashcards([
+export async function generateUpdateNodeStream(prompt: string, params: UpdateNode, history: Message[] = []) {
+    const messages = [
         { role: "system", content: nodeSystemPrompt },
+        ...history,
         { role: "user", content: `I want to learn about: ${prompt}.` }
-    ], params);
+    ] as Message[];
 
-    return stream;
+    return await streamGroqResponse(messages, async (fullResponse) => {
+        return updateResponseAsNode(parseStructuredNode(fullResponse), params);
+    });
 }
 
 export const groqNodeResponseStructure = {
@@ -293,3 +285,39 @@ Example (clarify):
   ]
 }
 `;
+
+// This method creates flashcards for the node passed in and stores them in the database
+export async function createFlashcards(data: Node) {
+    let flashcards: CreatedFlashcard[] = [];
+    try {
+        // First we generate the actual content
+        const flashcardData = await generateFlashcards({
+            nodeName: data.name,
+            nodeContent: data.content,
+        });
+
+        // Then we store them in the database
+        if (flashcardData.length > 0) {
+            const createdFlashcards = await prisma.$transaction(
+            flashcardData.map((fc: FlashcardInput) =>
+                prisma.flashcard.create({
+                data: {
+                    nodeId: data.id,
+                    userId: data.userId,
+                    name: fc.keyword,
+                    content: fc.definition,
+                },
+                })
+            )
+            );
+
+            flashcards = createdFlashcards.map((fc) => ({
+            id: fc.id,
+            keyword: fc.name,
+            definition: fc.content,
+            }));
+        }
+    } catch (e) {
+        console.error("Root node flashcard generation error:", e);
+    }
+}

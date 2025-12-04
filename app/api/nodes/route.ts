@@ -4,6 +4,7 @@ import { z } from "zod";
 import { CreateNodeSchema, GetNodesSchema } from "@/lib/validation_schemas";
 import { generateNodeStream } from "@/backend_helpers/groq_helpers";
 import { verifyUserAuthorization } from "@/lib/auth_helpers";
+import { getConversationHistory } from "@/lib/conversation";
 
 export async function GET(request: NextRequest) {
     try {
@@ -83,11 +84,15 @@ export async function POST(request: NextRequest) {
                 return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
             }
             
+            // Get conversation history
+            const history = await getConversationHistory(parsed.parentId);
+
             // Now we can set up the call to get a stream from our LLM,
             // which is simple if this isn't a root node
             nodeStream = await generateNodeStream(
                 parsed.question,
-                parsed
+                parsed,
+                history
             );
         } else {
             // For root nodes, we need to verify that the user owns the tree
@@ -100,7 +105,8 @@ export async function POST(request: NextRequest) {
             // Now we can set up the call to get a stream from our LLM
             nodeStream = await generateNodeStream(
                 tree_info.name,
-                parsed
+                parsed,
+                []
             );
         }
 
@@ -110,7 +116,7 @@ export async function POST(request: NextRequest) {
         console.error("POST /api/node error", err);
 
         if (err instanceof z.ZodError) {
-            return NextResponse.json({ errors: z.treeifyError(err) }, { status: 400 });
+            return NextResponse.json({ errors: err.flatten() }, { status: 400 });
         }
 
         const detail = err instanceof Error ? err.message : "An unknown error occurred";

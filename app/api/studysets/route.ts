@@ -19,7 +19,11 @@ export async function GET(request: NextRequest) {
     const sets = await prisma.studySet.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
-      include: { flashcards: false },
+      include: {
+        _count: {
+          select: { flashcards: true },
+        },
+      },
     });
 
     return NextResponse.json({ studysets: sets }, { status: 200 });

@@ -1,7 +1,7 @@
 // app/api/flashcards/queue/route.ts
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { Flashcard } from "@/app/generated/prisma";
+import { Flashcard } from "@prisma/client";
 
 
 function shuffle<T>(arr: T[]): T[] {

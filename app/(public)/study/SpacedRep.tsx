@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Flashcard as PrismaFlashcard } from "@/app/generated/prisma";
+import type { Flashcard as PrismaFlashcard } from "@prisma/client";
 
 type QueueResponse = { cards: PrismaFlashcard[] };
 

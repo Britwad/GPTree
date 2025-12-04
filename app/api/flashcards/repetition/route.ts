@@ -1,9 +1,7 @@
 // API route for spaced repetition
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@/app/generated/prisma";
+import prisma from "@/lib/prisma";
 import { reviewCardSM2 } from "@/lib/srs";
-
-const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
     const body = await req.json();

@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { Flashcard } from "@/app/generated/prisma";
+import { Flashcard } from "@prisma/client";
 
 
 /* Zod schema for incoming POST body (matches the minimal contract) */

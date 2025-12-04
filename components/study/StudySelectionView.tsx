@@ -9,6 +9,7 @@ interface StudySelectionViewProps {
   trees: Array<Tree & { flashcardCount: number }>;
   selectedTreeIds: number[];
   availableFlashcardsCount: number;
+  isLoadingFlashcards?: boolean;
   onToggleTree: (treeId: number) => void;
   onStartStudying: () => void;
   onNavigate: (page: string) => void;
@@ -18,6 +19,7 @@ export default function StudySelectionView({
   trees,
   selectedTreeIds,
   availableFlashcardsCount,
+  isLoadingFlashcards = false,
   onToggleTree,
   onStartStudying,
   onNavigate,
@@ -85,34 +87,40 @@ export default function StudySelectionView({
         ) : (
           <Card className="p-6 mb-6">
             <h3 className="text-xl mb-4" style={{ color: colors.darkGray }}>Select Topics to Study</h3>
-            <div className="space-y-3">
-              {trees.map((tree) => (
-                <div
-                  key={tree.id}
-                  className="flex items-center justify-between p-4 rounded-lg transition-colors"
-                  style={{ borderColor: colors.lightGray, borderWidth: '1px' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.superLightGreen}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                  <div className="flex items-center gap-3">
-                    <Checkbox
-                      id={`tree-${tree.id}`}
-                      checked={selectedTreeIds.includes(tree.id)}
-                      onCheckedChange={() => onToggleTree(tree.id)}
-                    />
-                    <label
-                      htmlFor={`tree-${tree.id}`}
-                      className="cursor-pointer flex-1"
-                    >
-                      <p className="font-medium" style={{ color: colors.darkGray }}>{tree.name}</p>
-                      <p className="text-sm" style={{ color: colors.darkGray }}>
-                        {tree.flashcardCount} cards total
-                      </p>
-                    </label>
+            {isLoadingFlashcards ? (
+              <p className="text-sm" style={{ color: colors.darkGray }}>
+                Loading flashcards...
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {trees.map((tree) => (
+                  <div
+                    key={tree.id}
+                    className="flex items-center justify-between p-4 rounded-lg transition-colors"
+                    style={{ borderColor: colors.lightGray, borderWidth: '1px' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.superLightGreen}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        id={`tree-${tree.id}`}
+                        checked={selectedTreeIds.includes(tree.id)}
+                        onCheckedChange={() => onToggleTree(tree.id)}
+                      />
+                      <label
+                        htmlFor={`tree-${tree.id}`}
+                        className="cursor-pointer flex-1"
+                      >
+                        <p className="font-medium" style={{ color: colors.darkGray }}>{tree.name}</p>
+                        <p className="text-sm" style={{ color: colors.darkGray }}>
+                          {tree.flashcardCount} cards total
+                        </p>
+                      </label>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </Card>
         )}
 

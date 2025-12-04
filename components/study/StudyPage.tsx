@@ -50,6 +50,7 @@ export default function StudyPage({
     easy: 0,
   });
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [isLoadingFlashcards, setIsLoadingFlashcards] = useState(true);
 
   useEffect(() => {
     if (!userId) {
@@ -57,6 +58,7 @@ export default function StudyPage({
     }
 
     let cancelled = false;
+    setIsLoadingFlashcards(true);
 
     (async () => {
       try {
@@ -82,9 +84,13 @@ export default function StudyPage({
 
         if (!cancelled) {
           setFlashcards(cards);
+          setIsLoadingFlashcards(false);
         }
       } catch (e) {
         console.error("Failed to load flashcards", e);
+        if (!cancelled) {
+          setIsLoadingFlashcards(false);
+        }
       }
     })();
 
@@ -243,6 +249,7 @@ export default function StudyPage({
         trees={treeStats}
         selectedTreeIds={selectedTreeIds}
         availableFlashcardsCount={availableFlashcards.length}
+        isLoadingFlashcards={isLoadingFlashcards}
         onToggleTree={toggleTreeSelection}
         onStartStudying={startStudying}
         onNavigate={(p) => {

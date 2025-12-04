@@ -10,7 +10,7 @@ type StudyPageProps = {
   trees: Tree[];
   userId: string;
   onNavigate: (page: AppState["currentPage"]) => void;
-  onUpdateFlashcard: (flashcardId: number, updates: Partial<Flashcard>) => void;
+  onUpdateFlashcard?: (flashcardId: number, updates: Partial<Flashcard>) => void;
 };
 
 // Types for the API response
@@ -45,7 +45,6 @@ export default function StudyPage({
   trees,
   userId,
   onNavigate,
-  onUpdateFlashcard,
 }: StudyPageProps) {
   const [selectedTreeIds, setSelectedTreeIds] = useState<number[]>(
     trees.map((t) => t.id)
@@ -62,13 +61,16 @@ export default function StudyPage({
   });
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [studyQueue, setStudyQueue] = useState<Flashcard[]>([]);
+  const [isLoadingFlashcards, setIsLoadingFlashcards] = useState(true);
 
   useEffect(() => {
     if (!userId) {
+      setIsLoadingFlashcards(false);
       return;
     }
 
     let cancelled = false;
+    setIsLoadingFlashcards(true);
 
     (async () => {
       try {
@@ -94,9 +96,13 @@ export default function StudyPage({
 
         if (!cancelled) {
           setFlashcards(cards);
+          setIsLoadingFlashcards(false);
         }
       } catch (e) {
         console.error("Failed to load flashcards", e);
+        if (!cancelled) {
+          setIsLoadingFlashcards(false);
+        }
       }
     })();
 
@@ -337,6 +343,7 @@ export default function StudyPage({
         trees={treeStats}
         selectedTreeIds={selectedTreeIds}
         availableFlashcardsCount={availableFlashcards.length}
+        isLoadingFlashcards={isLoadingFlashcards}
         onToggleTree={toggleTreeSelection}
         onStartStudying={startStudying}
         onNavigate={(p) => {

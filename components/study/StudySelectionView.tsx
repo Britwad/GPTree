@@ -9,6 +9,7 @@ interface StudySelectionViewProps {
   trees: Array<Tree & { flashcardCount: number }>;
   selectedTreeIds: number[];
   availableFlashcardsCount: number;
+  isLoadingFlashcards?: boolean;
   onToggleTree: (treeId: number) => void;
   onStartStudying: () => void;
   onNavigate: (page: string) => void;
@@ -18,6 +19,7 @@ export default function StudySelectionView({
   trees,
   selectedTreeIds,
   availableFlashcardsCount,
+  isLoadingFlashcards = false,
   onToggleTree,
   onStartStudying,
   onNavigate,
@@ -50,29 +52,38 @@ export default function StudySelectionView({
           </p>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <Card className="p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div>
-                <p className="text-sm" style={{ color: colors.darkGray }}>Total Cards</p>
-                <p className="text-2xl" style={{ color: colors.darkGray }}>{totalCards}</p>
+        {/* Stats Overview - Only show when not loading */}
+        {!isLoadingFlashcards && (
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+            <Card className="p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <div>
+                  <p className="text-sm" style={{ color: colors.darkGray }}>Total Cards</p>
+                  <p className="text-2xl" style={{ color: colors.darkGray }}>{totalCards}</p>
+                </div>
               </div>
-            </div>
-          </Card>
+            </Card>
 
-          <Card className="p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div>
-                <p className="text-sm" style={{ color: colors.darkGray }}>Trees</p>
-                <p className="text-2xl" style={{ color: colors.darkGray }}>{trees.length}</p>
+            <Card className="p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <div>
+                  <p className="text-sm" style={{ color: colors.darkGray }}>Trees</p>
+                  <p className="text-2xl" style={{ color: colors.darkGray }}>{trees.length}</p>
+                </div>
               </div>
-            </div>
-          </Card>
-        </div>
+            </Card>
+          </div>
+        )}
 
         {/* Tree Selection */}
-        {trees.length === 0 ? (
+        {isLoadingFlashcards ? (
+          <Card className="p-6 mb-6">
+            <h3 className="text-xl mb-4" style={{ color: colors.darkGray }}>Select Topics to Study</h3>
+            <p className="text-sm" style={{ color: colors.darkGray }}>
+              Loading flashcards...
+            </p>
+          </Card>
+        ) : trees.length === 0 ? (
           <Card className="p-12 text-center">
             <h3 className="text-xl mb-2" style={{ color: colors.darkGray }}>No Trees Yet</h3>
             <p className="mb-6" style={{ color: colors.darkGray }}>
@@ -116,8 +127,8 @@ export default function StudySelectionView({
           </Card>
         )}
 
-        {/* Start Button */}
-        {trees.length > 0 && (
+        {/* Start Button - Only show when not loading and there are trees */}
+        {!isLoadingFlashcards && trees.length > 0 && (
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -140,8 +151,8 @@ export default function StudySelectionView({
           </Card>
         )}
 
-        {/* Help Text */}
-        {trees.length > 0 && (
+        {/* Help Text - Only show when not loading and there are trees */}
+        {!isLoadingFlashcards && trees.length > 0 && (
           <div className="mt-8 p-4 rounded-lg" style={{ borderColor: colors.lightGray, borderWidth: '1px' }}>
             <h4 className="font-medium mb-2" style={{ color: colors.darkGray }}>How it works</h4>
             <p className="text-sm" style={{ color: colors.darkGray }}>

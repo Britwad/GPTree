@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { DeleteNodeSchema, UpdateNodeSchema } from "@/lib/validation_schemas";
-import { generateUpdateNodeStream } from "@/backend_helpers/groq_helpers";
+import { generateUpdateNodeStream, Message } from "@/backend_helpers/groq_helpers";
+import { getConversationHistory } from "@/lib/conversation";
 
 export async function GET(
   request: NextRequest,
@@ -247,8 +248,14 @@ export async function PATCH(
       );
     }
 
+    // Get conversation history
+    let history: Message[] = [];
+    if (node.parentId) {
+        history = await getConversationHistory(node.parentId);
+    }
+
     // Generate stream
-    const stream = await generateUpdateNodeStream(parsed.question, parsed);
+    const stream = await generateUpdateNodeStream(parsed.question, parsed, history);
 
     return new NextResponse(stream, {
         status: 200,

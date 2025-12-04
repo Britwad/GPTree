@@ -6,6 +6,8 @@ import { useSession } from "next-auth/react";
 import { ArrowLeft, Plus, Edit2, Trash2 } from "lucide-react";
 import { Button, Card } from "./StudyUIComponents";
 import StudySetModal from "./StudySetModal";
+import StudySetCreateModal from "./StudySetCreateModal";
+import StudySetEditModal from "./StudySetEditModal";
 import { colors } from "@/lib/colors";
 
 type StudySet = {
@@ -26,6 +28,7 @@ export default function StudySetsListPage() {
   const [studysets, setStudysets] = useState<StudySet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingStudyset, setEditingStudyset] = useState<StudySet | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
@@ -60,13 +63,17 @@ export default function StudySetsListPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, session, router]);
 
-  const handleCreate = async (title: string) => {
+  const handleCreate = async (title: string, selectedFlashcardIds: number[]) => {
     if (!session?.user?.id) return;
 
     const res = await fetch("/api/studysets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, userId: session.user.id }),
+      body: JSON.stringify({
+        title,
+        userId: session.user.id,
+        flashcardIds: selectedFlashcardIds,
+      }),
     });
 
     if (!res.ok) {
@@ -162,7 +169,7 @@ export default function StudySetsListPage() {
                 Studysets
               </h1>
             </div>
-            <Button onClick={() => setIsModalOpen(true)}>
+            <Button onClick={() => setIsCreateModalOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Create Studyset
             </Button>
@@ -183,7 +190,7 @@ export default function StudySetsListPage() {
             <p className="mb-6" style={{ color: colors.darkGray }}>
               Create your first studyset to start organizing your flashcards.
             </p>
-            <Button onClick={() => setIsModalOpen(true)}>
+            <Button onClick={() => setIsCreateModalOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Create Your First Studyset
             </Button>
@@ -247,17 +254,32 @@ export default function StudySetsListPage() {
         )}
       </main>
 
-      {/* Create/Edit Modal */}
-      <StudySetModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingStudyset(null);
-        }}
-        onSubmit={editingStudyset ? handleEdit : handleCreate}
-        initialTitle={editingStudyset?.title || ""}
-        mode={editingStudyset ? "edit" : "create"}
-      />
+      {/* Create Modal */}
+      {session?.user?.id && (
+        <StudySetCreateModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSubmit={handleCreate}
+          userId={session.user.id}
+        />
+      )}
+
+      {/* Edit Modal */}
+      {editingStudyset && (
+        <StudySetEditModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingStudyset(null);
+          }}
+          onTitleUpdate={async (newTitle: string) => {
+            await handleEdit(newTitle);
+          }}
+          studysetSlug={editingStudyset.slug}
+          initialTitle={editingStudyset.title}
+          onFlashcardsUpdate={fetchStudysets}
+        />
+      )}
     </div>
   );
 }

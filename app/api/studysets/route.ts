@@ -6,6 +6,7 @@ import { z } from "zod";
 const CreateStudySetSchema = z.object({
   title: z.string().min(1),
   userId: z.string().optional(),
+  flashcardIds: z.array(z.number().int().positive()).optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -56,6 +57,19 @@ export async function POST(request: NextRequest) {
     const studyset = await prisma.studySet.create({
       data: { title: parsed.title, slug, userId },
     });
+
+    // Associate flashcards with the studyset if provided
+    if (parsed.flashcardIds && parsed.flashcardIds.length > 0) {
+      await prisma.flashcard.updateMany({
+        where: {
+          id: { in: parsed.flashcardIds },
+          userId: userId, // Ensure user owns these flashcards
+        },
+        data: {
+          studySetId: studyset.id,
+        },
+      });
+    }
 
     return NextResponse.json(studyset, { status: 201 });
   } catch (err) {

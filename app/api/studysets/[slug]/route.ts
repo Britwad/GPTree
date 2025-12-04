@@ -15,7 +15,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const studyset = await prisma.studySet.findUnique({
       where: { slug },
       include: {
-        flashcards: { take: 50, select: { id: true, name: true, content: true, dueAt: true } },
+        flashcards: {
+          select: { id: true, name: true, content: true, dueAt: true },
+          orderBy: { id: "asc" },
+        },
       },
     });
 

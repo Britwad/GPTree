@@ -10,12 +10,12 @@ interface RatingPanelProps {
 
 export default function RatingPanel({ rating, onRatingSubmit }: RatingPanelProps) {
   return (
-    <div className="w-80 flex-shrink-0">
-      <div className="p-6 rounded-xl sticky top-24" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
+    <div className="h-[500px] flex flex-col">
+      <div className="p-6 rounded-xl sticky top-24 h-full flex flex-col" style={{ backgroundColor: colors.white, borderColor: colors.lightGray, borderWidth: '1px' }}>
         <p className="text-lg font-semibold mb-4 text-center" style={{ color: colors.darkGray }}>
           Rate Difficulty
         </p>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 flex-1">
           {[1, 2, 3, 4, 5].map((num) => (
             <Button
               key={num}

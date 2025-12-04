@@ -69,17 +69,6 @@ export default function FlashcardModalCard({ front, back, isFlipped, onFlip }: F
           </div>
         </div>
       </div>
-
-      {/* Footer with flip instruction */}
-      <div 
-        className="mt-4 py-4 px-6 rounded-lg text-center"
-        style={{ backgroundColor: colors.green }}
-      >
-        <p className="text-white text-sm flex items-center justify-center gap-2">
-          Click the card to flip
-          <span className="text-lg">👆</span>
-        </p>
-      </div>
     </div>
   );
 }

@@ -126,29 +126,60 @@ export default function ConversationPanel({
   };
 
   /*Panel reflects the same layout as node popup did*/
+  if (!node && !streamingIsOpen) {
+    return (
+      <div className="flex flex-col h-full p-6 overflow-y-auto animate-pulse">
+        {/* Header Text */}
+        <div 
+          className="pb-4" 
+          style={{ borderBottomColor: colors.lightGray, borderBottomWidth: "1px" }}
+        >
+          <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 py-4 space-y-6">
+          {/* Large Text (Content) */}
+          <div className="space-y-3">
+            <div className="h-4 bg-gray-200 rounded w-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-11/12"></div>
+            <div className="h-4 bg-gray-200 rounded w-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-4/5"></div>
+          </div>
+
+          {/* Smaller Text (Follow-ups) */}
+          <div className="space-y-2 pt-4">
+            <div className="h-10 bg-gray-200 rounded w-full"></div>
+            <div className="h-10 bg-gray-200 rounded w-full"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full p-6 overflow-y-auto">
       
       {/* HEADER */}
       <div
-        className="pb-4 flex justify-between items-center"
+        className="pb-4 flex justify-between items-center gap-4"
         style={{ borderBottomColor: colors.lightGray, borderBottomWidth: "1px" }}
       >
-        <h2 className="text-2xl font-bold">{nodeQuestion || "Select a node"}</h2>
+        <h2 className="text-2xl font-bold">{nodeQuestion}</h2>
         {node && (
           <button
-            onClick={() => setShowDeleteModal(true)}
-            className="px-3 py-2 rounded-lg transition-colors text-white flex items-center gap-2"
-            style={{ backgroundColor: colors.green }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = colors.darkGreen)
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = colors.green)
-            }
-            title="Delete this node"
+        onClick={() => setShowDeleteModal(true)}
+        className="px-3 py-2 rounded-lg transition-colors text-white flex items-center gap-2"
+        style={{ backgroundColor: colors.green }}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.backgroundColor = colors.darkGreen)
+        }
+        onMouseLeave={(e) =>
+          (e.currentTarget.style.backgroundColor = colors.green)
+        }
+        title="Delete this node"
           >
-            <Trash size={20} weight="bold" />
+        <Trash size={20} weight="bold" />
           </button>
         )}
       </div>
@@ -184,7 +215,7 @@ export default function ConversationPanel({
         )}
 
         {/* Follow-ups */}
-        {(node?.followups || (streamingIsOpen && streamingFollowups)) && (
+        {(node?.followups || (streamingIsOpen && streamingFollowups && streamingFollowups.length > 0)) && (
           <div>
             <h3 className="text-lg font-semibold mb-3">Suggested Follow-ups</h3>
 

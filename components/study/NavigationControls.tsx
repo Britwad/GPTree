@@ -17,7 +17,7 @@ export default function NavigationControls({
   onNext,
 }: NavigationControlsProps) {
   return (
-    <div className="flex items-center justify-center gap-4 mb-6">
+    <div className="flex items-center justify-between mb-6">
       <Button
         variant="outline"
         size="sm"

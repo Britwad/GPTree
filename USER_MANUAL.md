@@ -10,7 +10,7 @@ generate flashcards for review of topics/nodes, and users can revisit them later
 repetition for better long-term memory.
 
 ### **WHY USE GPTree?**
-    - Build a personal knowledge tree for any subject, with cleearly connected ideas
+    - Build a personal knowledge tree for any subject, with clearly connected ideas
     - Ask questions natuallu and see how different concepts relate
     - Turn any learning session into flashcards and review then efficiently
     - Organize your learning, no longer getting unstructered notes
@@ -55,10 +55,6 @@ f. Using Spaced Repetition
     GPTree will automatically generate the order of which to review the flashcards based off the
     difficutly in which you chose the flashcards as you reviewed them
 
-
-How to report a bug. This should include not just the mechanics (a pointer to your issue tracker), but also 
-what information is needed. You can set up a bug-report template in your issue tracker, or you can reference a 
-resource about how to write a good bug report. Here is an example for bug reporting guidelines.
 
 ## 4. Reporting bugs**
 If you run into an issue, report it in the Issue Tracker https://github.com/Britwad/GPTree/Issues

@@ -86,6 +86,11 @@ export default function StudySetEditModal({
     setEditingFlashcard({ name: flashcard.name, content: flashcard.content });
   };
 
+  // Check if flashcard edit is valid
+  const isFlashcardEditValid = editingFlashcard 
+    ? editingFlashcard.name.trim().length > 0 && editingFlashcard.content.trim().length > 0
+    : false;
+
   const handleSaveFlashcard = async (flashcardId: number) => {
     if (!editingFlashcard || !editingFlashcard.name.trim() || !editingFlashcard.content.trim()) {
       setError("Question and answer are required");
@@ -278,6 +283,7 @@ export default function StudySetEditModal({
                         <Button
                           size="sm"
                           onClick={() => handleSaveFlashcard(flashcard.id)}
+                          disabled={!isFlashcardEditValid}
                         >
                           <Save className="w-4 h-4 mr-2" />
                           Save

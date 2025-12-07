@@ -10,11 +10,20 @@ export default function LandingPage() {
 
   const [userEmail, setUserEmail] = useState<string>("");
 
+  // Check if email is valid (not empty or whitespace only)
+  const isEmailValid = userEmail.trim().length > 0;
+
   useEffect(() => {
     if (status === "authenticated") {
       router.replace("/tree");
     }
   }, [status, router]);
+
+  const handleEmailKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && isEmailValid) {
+      signIn("email", { email: userEmail.trim() });
+    }
+  };
 
   if (status === "authenticated") {
     return null;
@@ -43,6 +52,7 @@ export default function LandingPage() {
       <input 
         value={userEmail} 
         onChange={(e) => setUserEmail(e.target.value)}
+        onKeyPress={handleEmailKeyPress}
         placeholder="Enter your email"
             className="flex-1 rounded-lg px-4 py-2 focus:outline-none"
             style={{ borderWidth: '1px', borderColor: colors.lightGray, backgroundColor: colors.white, color: colors.darkGray, fontFamily: 'var(--font-inter)' }}
@@ -50,11 +60,23 @@ export default function LandingPage() {
             onBlur={(e) => e.currentTarget.style.borderColor = colors.lightGray}
         />
       <button
-            onClick={() => signIn("email", { email: userEmail })}
-            className="px-4 py-2 text-white rounded-lg shadow transition"
-            style={{ backgroundColor: colors.green, fontFamily: 'var(--font-inter)' }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.darkGreen}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.green}
+            onClick={() => signIn("email", { email: userEmail.trim() })}
+            disabled={!isEmailValid}
+            className="px-4 py-2 text-white rounded-lg shadow transition disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ 
+              backgroundColor: !isEmailValid ? colors.lightGray : colors.green, 
+              fontFamily: 'var(--font-inter)' 
+            }}
+            onMouseEnter={(e) => {
+              if (isEmailValid) {
+                e.currentTarget.style.backgroundColor = colors.darkGreen;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (isEmailValid) {
+                e.currentTarget.style.backgroundColor = colors.green;
+              }
+            }}
       >
         Continue
       </button>

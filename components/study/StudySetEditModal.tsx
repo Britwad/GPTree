@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Trash2, Edit2, Save, X as XIcon } from "lucide-react";
+import { X, Trash2, Edit2, Save } from "lucide-react";
 import { Button, Card } from "./StudyUIComponents";
 import { colors } from "@/lib/colors";
 
@@ -46,6 +46,7 @@ export default function StudySetEditModal({
       setEditingFlashcard(null);
       fetchFlashcards();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initialTitle, studysetSlug]);
 
   const fetchFlashcards = async () => {

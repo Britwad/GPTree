@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { ArrowLeft, Plus, Edit2, Trash2 } from "lucide-react";
 import { Button, Card } from "./StudyUIComponents";
-import StudySetModal from "./StudySetModal";
 import StudySetCreateModal from "./StudySetCreateModal";
 import StudySetEditModal from "./StudySetEditModal";
 import { colors } from "@/lib/colors";

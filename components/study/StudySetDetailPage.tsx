@@ -6,6 +6,8 @@ import { useSession } from "next-auth/react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "./StudyUIComponents";
 import { colors } from "@/lib/colors";
+import FlashcardViewer from "../FlashcardViewer";
+
 
 type StudySet = {
   id: number;
@@ -143,13 +145,14 @@ export default function StudySetDetailPage() {
                 {studyset.flashcards.length} flashcards in this studyset
               </p>
             </div>
-            <div className="text-center py-12">
-              <p style={{ color: colors.darkGray }}>
-                Flashcard viewing functionality will be implemented here.
-              </p>
-              <p className="text-sm mt-2" style={{ color: colors.darkGray }}>
-                This is a placeholder page for Yana&apos;s work.
-              </p>
+            <div className="py-12">
+              <FlashcardViewer
+                flashcards={studyset.flashcards.map(fc => ({
+                  front: fc.name,
+                  back: fc.content
+                }))}
+                onExit={() => router.push("/flashcards")}
+              />
             </div>
           </div>
         ) : null}
@@ -157,4 +160,3 @@ export default function StudySetDetailPage() {
     </div>
   );
 }
-

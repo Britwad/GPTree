@@ -16,6 +16,8 @@ export default function NavigationControls({
   onPrevious,
   onNext,
 }: NavigationControlsProps) {
+  const isLastCard = currentIndex === totalCards - 1;
+
   return (
     <div className="flex items-center justify-between mb-6">
       <Button
@@ -28,15 +30,21 @@ export default function NavigationControls({
         <ChevronLeft className="w-4 h-4" />
         Previous
       </Button>
+
       <Button
         variant="outline"
         size="sm"
         onClick={onNext}
-        disabled={currentIndex >= totalCards - 1}
         className="gap-2"
       >
-        Next
-        <ChevronRight className="w-4 h-4" />
+        {isLastCard ? (
+          "Finish"
+        ) : (
+          <>
+            Next
+            <ChevronRight className="w-4 h-4 ml-2" />
+          </>
+        )}
       </Button>
     </div>
   );

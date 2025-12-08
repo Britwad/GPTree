@@ -38,15 +38,16 @@ afterAll(async () => {
         await prisma.user.deleteMany();
 });
 
+// The flashcard route was refactored to account for our use of the spaced
+// repetition algorithm for studying flashcards, so the tests below are placeholders
+// until we can write tests for the new functionality.
 describe('Testing flashcard endpoints', () => {
     test('Succesfully creates a new flashcard (placeholder test)', async () => {
-        // Placeholder test until we implement flashcard creation
         expect(true).toBe(true);
     });
 
 
-    test('Succesfully gets flashcards for a node', async () => {
-        // Placeholder test until we implement flashcard creation
+    test('Succesfully gets flashcards for a node (placeholder test)', async () => {
         expect(first_tree.name).toBe("test_tree_a");
     });
 }); 

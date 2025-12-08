@@ -38,7 +38,7 @@ While there are an array of existing tools for education using AI, these tools a
 For users who go to ChatGPT or other major LLMs to learn, they often get overwhelmed with the quantity of information that results. It can be easy to lose track of what ground has been covered, and there is little to no accountability for knowledge retention. These other platforms are often scope limited to just school, with a focus on personalized learning experiences.
 
 **Novelty**:  
-The novelty of our approach comes from a tree-structure of learning. Each tree will represent a new exploration of a subject. Learning will be done node by node, where each node contains LLM generated information. Each node will give users the option for further learning either through flashcards, tests, or further questions. Further questions and clarifications will lead to the creation of a new node. As users explore a topic they will be able to see visible progress of what they have learned, and how it all connects. Furthermore, GPTree will have a place for users to go to practice concepts they have covered over all of their trees (topics). Here either flashcards or even more qualitative questions will be used to help users test their knowledge over wider gaps of time, ultimately cementing concepts in long term memory.
+The novelty of our approach comes from a tree-structure of learning. Each tree will represent a new exploration of a subject. Learning will be done node by node, where each node contains LLM generated information. Each node will give users the option for further learning either through flashcards, spaced repetition, or further questions. Further questions and clarifications will lead to the creation of a new node. As users explore a topic they will be able to see visible progress of what they have learned, and how it all connects. Furthermore, GPTree will have a place for users to go to practice concepts they have covered over all of their trees (topics). Here either flashcards or even more qualitative questions will be used to help users test their knowledge over wider gaps of time, ultimately cementing concepts in long term memory.
 
 **Effects:**  
 It is increasingly becoming the case that people resort to GPTs for day to day searching rather than an actual search engine. For those exploring the internet with the aim to learn more about a topic, we aim to be the place where that learning happens. We aim to ensure that GPTree always sports the latest model with the latest capabilities (including internet search and file reference). Our app will encourage actual and effective learning, of up to date information, rather than just immediate results that are quickly read and forgotten. Effectively, users will be generating a neatly structured textbook, making revisiting previous knowledge more convenient. Additionally with spaced repetition learning, users will be able to reinforce their knowledge of any topic they choose.
@@ -56,7 +56,7 @@ To mitigate risks related to LLM output variability, we will do the following:
 * Dedicated web app with intuitive UI/UX that combines the following features.
 * Tree based navigation page will give organization to the user’s interaction with the chatBot.   
 * Generation of potential follow-up questions with the option for users to ask their own. Each follow up question will lead to the creation of a new node with a new block of generated text answering the question.  
-* Each node will be associated with a set of flash cards, and users will have the chance to review these flash cards to test their knowledge.  
+* Each tree will be associated with a set of flash cards, and users will have the chance to review these flash cards to test their knowledge.  
 * There will be a dedicated page for spaced repetition learning, where concepts from any tree the user has generated will be collected for the user to be tested on. The user will have control over which trees they want to be practicing.
 
 **Stretch Goals:**
@@ -77,7 +77,6 @@ To mitigate risks related to LLM output variability, we will do the following:
 
 #### Pages
 - **View Tree** - Here users will be presented with a visual tree of the generated nodes, they will have the option to click on nodes, or to create a new node off of an existing node by asking a follow-up question.
-  - **View Node** - Here users will see the generated text response from the LLM of the answer to their question. Each Node will consist of a Title, Question, Text, Key Points Summary, and Generated follow-up questions.
   - **View Flashcards** Here users can view a set of **flashcards** either specific to the tree or specific to a single node.
 - **Spaced Repetition Page** - Here users will be presented a feed of **Flash Cards** based on the trees that they have generated. These **Flash Cards** will be presented using a spaced repetition scheduler, which will keep track of the user's success rate in remembering the information on the flash card.
 
@@ -93,7 +92,7 @@ To mitigate risks related to LLM output variability, we will do the following:
 
 **Triggers**
 
-* User clicks "Get Started" button
+* User clicks website URL
 
 **Preconditions**
 
@@ -126,7 +125,7 @@ To mitigate risks related to LLM output variability, we will do the following:
 
 **Triggers**
 
-* User clicks “New Tree” button
+* User clicks “Create New Tree” button
 
 **Preconditions**
 
@@ -170,7 +169,7 @@ To mitigate risks related to LLM output variability, we will do the following:
 
 **List of steps (success scenario)**
 
-1. System: A list of 3 potential follow-up questions appear next to the node, as well as an empty text box where user can enter their own question.
+1. System: A list of 5 potential follow-up questions appear next to the node, as well as an empty text box where user can enter their own question.
 2. User: Clicks the first option (E.g. "What is a determinant"?)
 3. System: A new node branches off the current node, and a modal appears displaying the question, generated text from LLM, and additional potential follow-up questions.
 
@@ -234,7 +233,7 @@ To mitigate risks related to LLM output variability, we will do the following:
 
 * The Node is displayed with Title, Question, Text, Key Points Summary, and generated follow-up questions
 * Context is preserved with navigation to parent and child Nodes
-* Quick actions are available to ask a follow-up, generate flashcards, copy link, and mark for review
+* Quick actions are available to ask a follow-up, change response length, and to delete Node
 * Reading progress is recorded for the user
 
 **List of steps (success scenario)**
@@ -247,7 +246,7 @@ To mitigate risks related to LLM output variability, we will do the following:
 
 **Extensions/variations of the success scenario**
 
-* Open via pop up instead of full page to keep Tree visible
+* Open in conversation panel instead of full page to keep Tree visible
 * Keyboard shortcuts for next and previous Node navigation
 * Print or export the Node as a PDF or markdown
 * Show version history of the Node’s generated content
@@ -259,46 +258,8 @@ To mitigate risks related to LLM output variability, we will do the following:
 * Database or network error → Show error message and a Retry option
 * Corrupted or incomplete content → Show “Content could not be loaded” with a prompt to regenerate or contact support
 
-### **3.6. Generate Flashcards from a Node**
 
-**Trigger**
-
-* Learner clicks “Generate Flashcards” on a node or while viewing Node
-
-**Preconditions**
-
-* Target node exists with sufficient content.  
-* LLM and database accessible.
-
-**Postconditions (Success)**
-
-* A deck is created/updated with cards (Q\&A, fill-in-the-blanks, pictures, etc.).  
-* Cards are inserted into the SRS queue with initial intervals.  
-* Practice results update each card’s ease factor and next due date; mastery metrics updated.
-
-**List of Steps (Success Scenario)**
-
-1. Learner selects Generate Flashcards.  
-2. System prompts LLM to produce candidate cards following style and difficulty constraints.  
-3. Learner optionally edits/removes cards; confirms deck creation.  
-4. System persists cards and schedules initial reviews.  
-5. Learner opens Practice; cards are presented in due order.  
-6. Learner rates recall (Again/Hard/Good/Easy). (This tells how soon to show the card again and tweak the difficulty score.)  
-7. The app schedules the next review: farther away if it was easy, sooner if it was hard, and updates your progress.
-
-**Extensions / Variations**
-
-* Whole branch at once: make cards for a subtree (several pages).  
-* Export: send cards to CSV(Comma-Separated Values) /Anki (Flashcard app)  
-* Auto‑adjust difficulty: if cards are too easy/hard, the app rewrites them to your level.
-
-**Exceptions (Failure Conditions & Scenarios)**
-
-* Too many or too long cards → The app keeps a limit and shortens long ones.  
-* Time/clock issues → The server sets the right time so reviews aren’t duplicated or skipped.  
-* Can’t save → Your draft list stays on your device, and you’ll see a Try again message.
-
-### **3.7. Generate Flashcards from a Tree**
+### **3.6. Generate Flashcards from a Tree**
 
 **Trigger**
 
@@ -317,11 +278,11 @@ To mitigate risks related to LLM output variability, we will do the following:
 
 **List of Steps (Success Scenario)**
 
-1. Learner selects Generate Flashcards.  
+1. Learner selects View Flashcards.  
 2. System prompts LLM to produce candidate cards following style and difficulty constraints.  
-3. Learner optionally edits/removes cards; confirms deck creation.  
+3. Learner optionally rates card difficutly  
 4. System persists cards and schedules initial reviews.  
-5. Learner opens Practice; cards are presented in due order.  
+5. Learner opens Study; cards are presented in due order.  
 6. Learner rates recall (Again/Hard/Good/Easy). (This tells how soon to show the card again and tweak the difficulty score.)  
 7. The app schedules the next review: farther away if it was easy, sooner if it was hard, and updates your progress.
 
@@ -338,13 +299,11 @@ To mitigate risks related to LLM output variability, we will do the following:
 * Can’t save → Your draft list stays on your device, and you’ll see a Try again message.
 
 
-### **3.8.  Use Spaced Repetition Feed**
+### **3.7.  Use Spaced Repetition Feed**
 
 **Triggers**
 
-The user goes back, looking at all the trees
-
-Reminders given by the website about going back to previous topics 
+The user goes to the Study page, looking at all the flashcards
 
 **Preconditions**
 
@@ -354,20 +313,16 @@ The website has saved the user's progress and the tree structure/topics
 
 **Postconditions (success scenario)**
 
-The user goes back to the previous topic tree
-
 The user reviews the flashcards from that tree, recalling information previously given by the LLM
 
 The app updates the progress of review
 
 **List of steps (success scenario)**
 
-1. User selects Flashcards button
-2. The website loads a new screen where user's previous conversations and current progress in review  
-3. User selects “Review previous topics”  
-4. The website shows the tree of previously studied topics
-5. The User choses which topic to review   
-6. The website displays the flashcards from that topic  
+1. User selects Study button 
+2. The website shows the tree of previously studied topics
+3. The User clicks to go through the flashcards  
+6. The website displays the flashcards in the order of difficulty  
 7. User flips through each flashcard to review them   
 8. The website marks which cards have been reviewed by the user
 9. User ends review session by clicking end
@@ -419,9 +374,9 @@ Development will take place in Visual Studio Code, using GitHub for version cont
 ### Team Structure
 **Brittan: Frontend/Backend**. This team member has experience in the full stack development using [Next.js](http://Next.js) and PostgreSQL. Since GPTree was their idea, they will be helping out on developing and connecting the front and backend, and ensuring general cohesion over the whole project.
 
-**Jungho: Backend**, we need this role to work with AI models and make sure data can be stored nicely into nodes, maintaining correct history per node (a node should contain the context of previous nodes). Is a good fit for the role having worked with OpenAI APIs and is interested in doing more.
+**Jungho: Backend**. We need this role to work with AI models and make sure data can be stored nicely into nodes, maintaining correct history per node (a node should contain the context of previous nodes). Is a good fit for the role having worked with OpenAI APIs and is interested in doing more.
 
-**Richman: Frontend and UI/UX**, this is needed for the app to feel approachable and consistent across the different components such as flashcards, quizzes, the trees, etc. Interested in doing frontend and UI, done design in the past for other projects in different classes. 
+**Richman: Frontend and UI/UX**. This is needed for the app to feel approachable and consistent across the different components such as flashcards, quizzes, the trees, etc. Interested in doing frontend and UI, done design in the past for other projects in different classes. 
 
 **Yana: Frontend and UI/UX**. This is important in order to create an attractive website for users and easy to navigate. It is also important for the website to feel satisfying to use and for people to continue to come back to the website. 
 

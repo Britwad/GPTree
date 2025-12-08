@@ -10,6 +10,7 @@ beforeAll(async () => {
     await prisma.flashcard.deleteMany();
     await prisma.node.deleteMany();
     await prisma.tree.deleteMany();
+    await prisma.studySet.deleteMany();
     await prisma.user.deleteMany();
 
     // Create a user to own the trees
@@ -33,6 +34,7 @@ afterAll(async () => {
         await prisma.flashcard.deleteMany();
         await prisma.node.deleteMany();
         await prisma.tree.deleteMany();
+        await prisma.studySet.deleteMany();
         await prisma.user.deleteMany();
 });
 

@@ -190,3 +190,13 @@ export const UpdateNodeSchema = z.object({
     question: z.string().min(1).max(500),
 });
 export type UpdateNode = z.infer<typeof UpdateNodeSchema>;
+
+export const StudySetSchema = z.object({
+    id: z.number().min(1),
+    title: z.string().min(1).max(100),
+    slug: z.string().min(1).max(100),
+    userId: z.string().min(1),
+    createdAt: z.coerce.date(),
+    updatedAt: z.coerce.date(),
+});
+export type StudySet = z.infer<typeof StudySetSchema>;

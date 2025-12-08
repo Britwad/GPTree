@@ -67,9 +67,10 @@ export async function generateFlashcards(params: {
 }
 
 // Generic function to handle streaming from Groq and processing the result
-async function streamGroqResponse(
+async function streamModelResponse(
     messages: Message[],
-    onComplete: (fullResponse: string) => Promise<Node>
+    onComplete: (fullResponse: string) => Promise<Node>,
+    generateFlashcards: boolean = true,  // set to false for testing if flashcards are not needed
 ) {
     try {
         // Validate input
@@ -102,7 +103,10 @@ async function streamGroqResponse(
                     }
 
                     const node = await onComplete(fullResponse);
-                    await createFlashcards(node);
+
+                    if (generateFlashcards) {
+                        await createFlashcards(node);
+                    }
 
                 } catch (err) {
                     controller.error(err);
@@ -122,10 +126,10 @@ async function streamGroqResponse(
  * @param messages The messages we want to give Groq. Should contain a system
  * prompt and a user prompt
  * @param params The parameters for creating a node in the database
- * @returns 
+ * @returns a ReadableStream that streams the LLM response
  */
-export async function groqNodeAndFlashcards(messages: Message[], params: CreateNode) {
-    return streamGroqResponse(messages, async (fullResponse) => {
+export async function modelNodeAndFlashcards(messages: Message[], params: CreateNode) {
+    return streamModelResponse(messages, async (fullResponse) => {
         return storeResponseAsNode(parseStructuredNode(fullResponse), params);
     });
 }
@@ -176,7 +180,6 @@ export function parseStructuredNode(content: string): StructuredNode {
  * @returns A ReadableStream that streams the LLM response
 */
 export async function generateNodeStream(prompt: string, params: CreateNode, history: Message[] = []) {
-
     // Generate content for the root node based on the prompt
     // We're streaming to the backend right now but eventually
     // we will stream to the client
@@ -185,7 +188,7 @@ export async function generateNodeStream(prompt: string, params: CreateNode, his
         ...history,
         { role: "user", content: `I want to learn about: ${prompt}.` }
     ] as Message[];
-    return await groqNodeAndFlashcards(messages, params);
+    return await modelNodeAndFlashcards(messages, params);
 }
 
 async function updateResponseAsNode(response: StructuredNode, params: UpdateNode) {
@@ -209,7 +212,7 @@ export async function generateUpdateNodeStream(prompt: string, params: UpdateNod
         { role: "user", content: `I want to learn about: ${prompt}.` }
     ] as Message[];
 
-    return await streamGroqResponse(messages, async (fullResponse) => {
+    return await streamModelResponse(messages, async (fullResponse) => {
         return updateResponseAsNode(parseStructuredNode(fullResponse), params);
     });
 }
@@ -256,6 +259,37 @@ Formatting for "content":
 - Only use fenced code blocks when you must show actual code or math.
 - Avoid wrapping the entire output in backticks.
 - Keep total length under 500 words.
+
+Math formatting rules:
+You MUST format all mathematical expressions using LaTeX inline math with dollar signs.
+**ANY** time you include math, it **MUST** be properly wrapped in dollar signs.
+(i.e. any time you need a function like \\mathbf, \\sqrt, \\frac, etc.,
+it MUST be $\\mathbf{...}$ or $$...$$, etc.)
+
+Inline math: $...$
+Block math: $$...$$
+
+Examples:
+- inline: $x^2 + y^2$
+- block:
+$$
+\frac{\partial f}{\partial x}
+$$
+
+Incorrect (NEVER allowed):
+- \(...\)
+- \[...\]
+- \\(...\\)
+- backticks (\`...\`)
+- raw latex without dollar signs
+- mixing formats
+
+If you produce any math expression, GUARANTEE it is wrapped in dollar signs. 
+If you are unsure, wrap it anyway.
+
+Before sending your final answer, scan it and correct it so that:
+- ALL math expressions are wrapped in $...$ or $$...$$.
+- NO raw LaTeX appears outside of dollar signs.
 
 Formatting for "followups":
 - In "success": 2–5 concise, distinct educational follow-up questions. They should be directly relevant to the content. Things that may have been brought up without proper context or explanation.

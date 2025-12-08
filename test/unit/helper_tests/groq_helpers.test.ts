@@ -1,4 +1,4 @@
-import { groqNodeAndFlashcards,
+import { modelNodeAndFlashcards,
         type Message,
         getGroqChatCompletion, 
         nodeSystemPrompt} from "@/backend_helpers/groq_helpers";
@@ -12,6 +12,7 @@ beforeAll(async () => {
     await prisma.flashcard.deleteMany();
     await prisma.node.deleteMany();
     await prisma.tree.deleteMany();
+    await prisma.studySet.deleteMany();
     await prisma.user.deleteMany();
 });
 
@@ -22,6 +23,7 @@ afterAll(async () => {
     await prisma.flashcard.deleteMany();
     await prisma.node.deleteMany();
     await prisma.tree.deleteMany();
+    await prisma.studySet.deleteMany();
     await prisma.user.deleteMany();
 });
 
@@ -92,7 +94,7 @@ describe("groqNodeAndFlashcards", () => {
         }
 
         // Get the stream from the helper
-        const stream = await groqNodeAndFlashcards(messages, node_body);
+        const stream = await modelNodeAndFlashcards(messages, node_body);
         expect(stream).toBeInstanceOf(ReadableStream);
 
         // Read from the stream

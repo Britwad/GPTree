@@ -567,6 +567,9 @@ export default function App() {
       };
       console.log("Received chunk:", value);
 
+      // Slowing streaming for better feel
+      await new Promise((r) => setTimeout(r, 20));
+
       setStreamingNode(prev => {
         // Make sure the key is valid
         if (!value.key || !prev) return prev;

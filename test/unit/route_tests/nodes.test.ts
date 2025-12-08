@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { type CreateTree } from '@/lib/validation_schemas';
 import { NextRequest } from 'next/server';
-import { User } from "@prisma/client";
+import { User, Tree } from "@prisma/client";
 import { CreateNode } from "@/lib/validation_schemas";
 import { POST as MakeNode, GET as GetNodes } from "@/app/api/nodes/route";
 
@@ -39,7 +39,7 @@ afterAll(async () => {
         await prisma.user.deleteMany();
 });
 
-let tree: any;
+let tree: Tree;
 describe('Testing node endpoints', () => {
     test('Succesfully creates a new node', async () => {
         // First we make the tree

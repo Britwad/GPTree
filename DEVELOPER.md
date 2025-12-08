@@ -167,9 +167,10 @@ npm start
 
 ### **Environment Setup**
 
-* `.env` → Development
+The following two folder must be in the root of the project:
+
+* `.env` → Development/Deployment
 * `.env.test` → Jest environment
-* `.env.production` → Vercel deployment
 
 ---
 

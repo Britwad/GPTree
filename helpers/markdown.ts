@@ -24,5 +24,12 @@ export function sanitizeMarkdown(raw: string): string {
     .replace(/&gt;/g, ">")
     .replace(/&amp;/g, "&");
 
+  // 7. Normalize LaTeX delimiters for remark-math
+  // Replace \[ ... \] with $$ ... $$
+  text = text.replace(/(^|[^\\])\\\[/g, "$1$$$$").replace(/(^|[^\\])\\\]/g, "$1$$$$");
+
+  // Replace \( ... \) with $ ... $
+  text = text.replace(/(^|[^\\])\\\(/g, "$1$$").replace(/(^|[^\\])\\\)/g, "$1$$");
+
   return text;
 }

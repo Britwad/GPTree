@@ -45,7 +45,6 @@ afterAll(async () => {
 });
 
 describe('Testing studyset endpoints', () => {
-    let first_tree_hash: string = '';
 
     test('Succesfully creates a new studyset', async () => {
         // Make a fake tree 

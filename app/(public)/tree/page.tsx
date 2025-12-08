@@ -16,15 +16,25 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Check if prompt is valid (not empty or whitespace only)
+  const isPromptValid = prompt.trim().length > 0;
+
   // Submit prompt handler
   const onSubmit = async () => {
+    // Validate input before submitting
+    if (!isPromptValid) {
+      setError("Please enter a topic to explore");
+      return;
+    }
+
+    setError(null);
     setLoading(true);
 
     const res = await fetch("/api/trees", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: 'include',
-      body: JSON.stringify({ name: prompt, userId: session?.user?.id }),
+      body: JSON.stringify({ name: prompt.trim(), userId: session?.user?.id }),
     });
 
     const data = await res.json();
@@ -43,8 +53,16 @@ export default function App() {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && isPromptValid && !loading) {
       onSubmit();
+    }
+  };
+
+  const handlePromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPrompt(e.target.value);
+    // Clear error when user starts typing
+    if (error) {
+      setError(null);
     }
   };
 
@@ -68,7 +86,7 @@ export default function App() {
         <div className="flex gap-3 w-full max-w-md">
           <input
             value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
+            onChange={handlePromptChange}
             onKeyPress={handleKeyPress}
             placeholder="Enter a topic..."
             disabled={loading}
@@ -90,20 +108,28 @@ export default function App() {
           />
           <button
             onClick={onSubmit}
-            disabled={loading}
-            className="px-6 py-3 text-white rounded-lg transition-colors disabled:opacity-50 font-semibold"
+            disabled={loading || !isPromptValid}
+            className="px-6 py-3 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
             style={{
               fontFamily: 'var(--font-inter)',
-              backgroundColor: loading ? colors.green : colors.green,
+              backgroundColor: (loading || !isPromptValid) ? colors.lightGray : colors.green,
             }}
-            onMouseEnter={(e) => !loading && (e.currentTarget.style.backgroundColor = colors.darkGreen)}
-            onMouseLeave={(e) => !loading && (e.currentTarget.style.backgroundColor = colors.green)}
+            onMouseEnter={(e) => {
+              if (!loading && isPromptValid) {
+                e.currentTarget.style.backgroundColor = colors.darkGreen;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!loading && isPromptValid) {
+                e.currentTarget.style.backgroundColor = colors.green;
+              }
+            }}
           >
             {loading ? "Creating..." : "Go"}
           </button>
         </div>
         
-        {error && <p className="text-center" style={{ fontFamily: 'var(--font-inter)', color: colors.darkGray }}>{error}</p>}
+        {error && <p className="text-center" style={{ fontFamily: 'var(--font-inter)', color: '#ef4444' }}>{error}</p>}
       </div>
     </div>
   );

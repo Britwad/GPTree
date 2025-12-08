@@ -39,6 +39,9 @@ export default function ConversationPanel({
 
   const nodeQuestion = node?.question || streamingQuestion || "";
 
+  // Check if prompt is valid (not empty or whitespace only)
+  const isPromptValid = prompt.trim().length > 0;
+
   const onSubmit = async (overridePrompt?: string) => {
     const promptToUse = overridePrompt || prompt;
 
@@ -81,7 +84,9 @@ export default function ConversationPanel({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") onSubmit();
+    if (e.key === "Enter" && isPromptValid && !isLoading) {
+      onSubmit();
+    }
   };
 
   const handleDeleteNode = async (deleteMode: "node" | "branch") => {
@@ -277,15 +282,21 @@ export default function ConversationPanel({
 
           <button
             onClick={() => onSubmit()}
-            disabled={isLoading}
+            disabled={isLoading || !isPromptValid}
             className="px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: colors.green }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = colors.darkGreen)
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = colors.green)
-            }
+            style={{ 
+              backgroundColor: (isLoading || !isPromptValid) ? colors.lightGray : colors.green 
+            }}
+            onMouseEnter={(e) => {
+              if (!isLoading && isPromptValid) {
+                e.currentTarget.style.backgroundColor = colors.darkGreen;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isLoading && isPromptValid) {
+                e.currentTarget.style.backgroundColor = colors.green;
+              }
+            }}
           >
             {isLoading ? "Creating..." : "Submit"}
           </button>

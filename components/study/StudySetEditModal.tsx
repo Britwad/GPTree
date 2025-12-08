@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Trash2, Edit2, Save, X as XIcon } from "lucide-react";
+import { X, Trash2, Edit2, Save } from "lucide-react";
 import { Button, Card } from "./StudyUIComponents";
 import { colors } from "@/lib/colors";
 
@@ -46,6 +46,7 @@ export default function StudySetEditModal({
       setEditingFlashcard(null);
       fetchFlashcards();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initialTitle, studysetSlug]);
 
   const fetchFlashcards = async () => {
@@ -85,6 +86,11 @@ export default function StudySetEditModal({
     setEditingFlashcardId(flashcard.id);
     setEditingFlashcard({ name: flashcard.name, content: flashcard.content });
   };
+
+  // Check if flashcard edit is valid
+  const isFlashcardEditValid = editingFlashcard 
+    ? editingFlashcard.name.trim().length > 0 && editingFlashcard.content.trim().length > 0
+    : false;
 
   const handleSaveFlashcard = async (flashcardId: number) => {
     if (!editingFlashcard || !editingFlashcard.name.trim() || !editingFlashcard.content.trim()) {
@@ -278,6 +284,7 @@ export default function StudySetEditModal({
                         <Button
                           size="sm"
                           onClick={() => handleSaveFlashcard(flashcard.id)}
+                          disabled={!isFlashcardEditValid}
                         >
                           <Save className="w-4 h-4 mr-2" />
                           Save

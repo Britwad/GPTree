@@ -46,12 +46,14 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           className
         )}
         style={{
-          ...(variant === "default" ? { backgroundColor: colors.green } : {}),
+          ...(variant === "default" && !props.disabled ? { backgroundColor: colors.green } : {}),
+          ...(variant === "default" && props.disabled ? { backgroundColor: colors.lightGray } : {}),
           ...(variant === "outline" ? { borderColor: colors.lightGray, color: colors.darkGray } : {}),
           ...(variant === "ghost" ? { color: colors.darkGray } : {}),
           ...(variant === "link" ? { color: colors.green } : {}),
         }}
         onMouseEnter={(e) => {
+          if (props.disabled) return;
           if (variant === "default") {
             e.currentTarget.style.backgroundColor = colors.darkGreen;
           } else if (variant === "outline") {
@@ -59,6 +61,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           }
         }}
         onMouseLeave={(e) => {
+          if (props.disabled) return;
           if (variant === "default") {
             e.currentTarget.style.backgroundColor = colors.green;
           } else if (variant === "outline") {

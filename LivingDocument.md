@@ -563,7 +563,7 @@ External feedback will be the most useful the moment we have a functional backen
 
 ## **7. Software Architecture**
 
-![Architecture Diagram](./devDiagrams/arch%20diagram.webp)
+![Architecture Diagram](devDiagrams\arch-diagram.png)
 
 ### 7.1 Overview of System Architecture
 

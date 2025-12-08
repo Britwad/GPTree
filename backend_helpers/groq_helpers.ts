@@ -260,6 +260,37 @@ Formatting for "content":
 - Avoid wrapping the entire output in backticks.
 - Keep total length under 500 words.
 
+Math formatting rules:
+You MUST format all mathematical expressions using LaTeX inline math with dollar signs.
+**ANY** time you include math, it **MUST** be properly wrapped in dollar signs.
+(i.e. any time you need a function like \\mathbf, \\sqrt, \\frac, etc.,
+it MUST be $\\mathbf{...}$ or $$...$$, etc.)
+
+Inline math: $...$
+Block math: $$...$$
+
+Examples:
+- inline: $x^2 + y^2$
+- block:
+$$
+\frac{\partial f}{\partial x}
+$$
+
+Incorrect (NEVER allowed):
+- \(...\)
+- \[...\]
+- \\(...\\)
+- backticks (\`...\`)
+- raw latex without dollar signs
+- mixing formats
+
+If you produce any math expression, GUARANTEE it is wrapped in dollar signs. 
+If you are unsure, wrap it anyway.
+
+Before sending your final answer, scan it and correct it so that:
+- ALL math expressions are wrapped in $...$ or $$...$$.
+- NO raw LaTeX appears outside of dollar signs.
+
 Formatting for "followups":
 - In "success": 2–5 concise, distinct educational follow-up questions. They should be directly relevant to the content. Things that may have been brought up without proper context or explanation.
 - In "clarify": 0–3 optional suggestions for directed questions. These must be questions that would not need additional clarification.

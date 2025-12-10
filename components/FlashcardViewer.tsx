@@ -55,14 +55,12 @@ export default function FlashcardViewer({ flashcards, onExit }: FlashcardViewerP
 
   if (flashcards.length === 0) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl max-w-2xl w-full p-8">
+      <div className="w-full max-w-4xl mx-auto p-6">
           <div className="text-center py-12">
             <p style={{ color: colors.darkGray }}>No flashcards available.</p>
             <Button onClick={onExit} className="mt-4">Close</Button>
           </div>
         </div>
-      </div>
     );
   }
 
@@ -87,8 +85,7 @@ export default function FlashcardViewer({ flashcards, onExit }: FlashcardViewerP
 
   if (completed) {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-3xl w-full p-6 text-center">
+    <div className="w-full max-w-4xl mx-auto p-6">
         <h2 className="text-2xl font-semibold mb-4" style={{ color: colors.darkGray }}>
           🎉 You finished all flashcards!
         </h2>
@@ -106,14 +103,12 @@ export default function FlashcardViewer({ flashcards, onExit }: FlashcardViewerP
           <Button onClick={onExit} variant="outline">Exit</Button>
         </div>
       </div>
-    </div>
   );
 }
 
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-3xl w-full p-6 relative">
+    <div className="w-full max-w-4xl mx-auto p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <p style={{ color: colors.darkGray }}>
@@ -160,6 +155,5 @@ export default function FlashcardViewer({ flashcards, onExit }: FlashcardViewerP
           Use ← → arrow keys to navigate, ↑ ↓ to flip
         </p>
       </div>
-    </div>
   );
 }

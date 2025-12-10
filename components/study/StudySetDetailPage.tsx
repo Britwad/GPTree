@@ -122,7 +122,7 @@ export default function StudySetDetailPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-12 max-w-5xl">
+      <main className="container mx-auto px-6 pt-2 pb-12 max-w-5xl">
         {isLoading ? (
           <div className="text-center py-12">
             <p style={{ color: colors.darkGray }}>Loading studyset...</p>
@@ -140,11 +140,6 @@ export default function StudySetDetailPage() {
           </div>
         ) : studyset ? (
           <div>
-            <div className="mb-6">
-              <p className="text-sm" style={{ color: colors.darkGray }}>
-                {studyset.flashcards.length} flashcards in this studyset
-              </p>
-            </div>
             <div className="py-12">
               <FlashcardViewer
                 flashcards={studyset.flashcards.map(fc => ({

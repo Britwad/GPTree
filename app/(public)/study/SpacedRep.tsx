@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Flashcard as PrismaFlashcard } from "@prisma/client";
 import FlashcardViewer, {Flashcard} from "@/components/FlashcardViewer";
-import { colors } from "@/lib/colors";
+import { useRouter } from "next/navigation";
 
 type QueueResponse = { cards: PrismaFlashcard[] };
 
@@ -24,10 +24,16 @@ export default function SpacedRep({ userId }: { userId: string }) {
   const [cards, setCards] = useState<UiCard[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isViewerOpen, setIsViewerOpen] = useState(false);
 
   const lastFetchId = useRef(0);
   const mountedRef = useRef(true);
+
+  const router = useRouter();
+
+  const handleExit = () => {
+    router.push("/tree");
+  };
+
 
   useEffect(() => {
     mountedRef.current = true;
@@ -121,47 +127,21 @@ export default function SpacedRep({ userId }: { userId: string }) {
   if (!loading && cards.length === 0) return <div>No flashcards due right now 🎉</div>;
 
   return (
-    <div>
-      {loading && cards.length > 0 && ( 
-        <div className="text-sm text-gray-500 mb-2">Refreshing… (showing cached results)</div>
-      )}
-
-      {cards.length > 0 && (
-        <div className="mb-4">
-          <button
-            className="px-4 py-2 bg-blue-600 text-white rounded"
-            onClick={() => setIsViewerOpen(true)}
-          >
-            Start Studying ({cards.length} cards)
-          </button>
+  <div className="w-full flex justify-center px-4">
+    <div className="max-w-4xl w-full">
+      {loading && cards.length > 0 && (
+        <div className="text-sm text-gray-500 mb-2">
+          Refreshing… (showing cached results)
         </div>
       )}
 
-      {isViewerOpen && (
-        <FlashcardViewer
-          flashcards={flashcardsForViewer}
-          onExit={() => setIsViewerOpen(false)}
-        />
-      )}
-
-      {/* Inline flashcard list for reference */}
-      <div className="space-y-4">
-        {cards.map((card, idx) => (
-          <div key={`${card.id}-${idx}`} className="border rounded-lg p-4 shadow bg-white">
-            <div className="text-gray-500 text-sm mb-2">#{idx + 1}</div>
-            <div className="font-medium text-lg mb-2">{card.front}</div>
-            <details>
-              <summary className="cursor-pointer text-blue-600">Show Answer</summary>
-              <div className="mt-2">{card.back}</div>
-            </details>
-            <div className="mt-2 text-xs text-gray-500">
-              {card.due ? <>Due: {new Date(card.due).toLocaleString()} • </> : null}
-              {card.interval !== null ? <>Interval: {card.interval}d • </> : null}
-              {card.ease !== null ? <>EF: {card.ease.toFixed(2)}</> : null}
-            </div>
-          </div>
-        ))}
-      </div>
+      <FlashcardViewer
+        flashcards={flashcardsForViewer}
+        onExit={handleExit}
+      />
     </div>
-  );
+  </div>
+);
+
+
 }
